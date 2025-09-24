@@ -1,53 +1,34 @@
-# Ḥuqúqu’lláh Assistant - Implementation Plan
+# Redesign App with Material-UI
 
-## Phase 1: Project Setup ✅
-- [x] Initialize React + TypeScript project with Vite
-- [x] Set up essential dependencies (React Router, i18n, UI libraries)
-- [x] Create basic folder structure
-- [x] Configure environment variables
+## Step 1: Install MUI Dependencies
+- Install @mui/material, @emotion/react, @emotion/styled, @mui/icons-material
 
-## Phase 2: Core Infrastructure ✅
-- [x] Set up TypeScript interfaces and types
-- [x] Implement local storage service with encryption
-- [x] Create calculation engine for surplus and Ḥuqúqu’lláh
-- [x] Set up internationalization (French primary)
+## Step 2: Remove Tailwind CSS
+- Remove Tailwind dependencies from package.json
+- Delete tailwind.config.js, postcss.config.js, postcss.config.cjs
+- Update index.css to remove Tailwind imports
 
-## Phase 3: Core Features ✅
-- [x] Dashboard component with overview
-- [x] Income/Expense management system
-- [x] Surplus calculation functionality
-- [x] Ḥuqúqu’lláh calculation (19%)
-- [x] Gold price integration and conversion
-- [x] Payment tracking and history
-- [x] Progressive payment planning
+## Step 3: Setup MUI Theme
+- Update App.tsx to include ThemeProvider and CssBaseline
 
-## Phase 4: Advanced Features ✅
-- [x] PDF receipt generation
-- [x] Export functionality (CSV/PDF)
-- [x] Notification system
-- [x] Security features (PIN/biometric simulation)
+## Step 4: Redesign Navigation
+- Update Navigation_new.tsx to use MUI AppBar and Drawer
 
-## Phase 5: UI/UX Polish ✅
-- [x] Responsive design implementation
-- [x] French language integration
-- [x] Accessibility features
-- [x] Error handling and validation
+## Step 5: Redesign Dashboard
+- Update Dashboard_new.tsx to use MUI Cards, Buttons, etc., and implement functionalities with props
 
-## Phase 6: Testing & Finalization ✅
-- [x] Set up testing framework
-- [x] Test core calculations
-- [x] Performance optimization
-- [x] Final documentation
+## Step 6: Redesign Other Components
+- Update Transactions.tsx with MUI components
+- Update Calculator.tsx
+- Update Payments.tsx
+- Update Planning.tsx
+- Update Settings.tsx
+- Update Help.tsx
+- Update SecurityModal.tsx
 
-## Next Steps:
-1. Install dependencies and run the application
-2. Test all features thoroughly
-3. Add any missing functionality based on user feedback
+## Step 7: Remove Old CSS Files
+- Delete all .css files in components/
 
-## Design Improvements Completed ✅
-- [x] Created enhanced Dashboard component with modern design
-- [x] Updated Navigation with gradient background and professional styling
-- [x] Improved color scheme with meaningful gradients
-- [x] Enhanced card designs with hover effects and shadows
-- [x] Better typography and spacing throughout the application
-- [x] Updated background colors for better visual hierarchy
+## Step 8: Test and Implement Functionalities
+- Ensure all functionalities work with MUI
+- Add any missing features

@@ -1,114 +1,192 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  LayoutDashboard,
-  Receipt,
-  Calculator,
-  CreditCard,
-  Calendar,
-  Settings,
-  HelpCircle,
-  Menu,
-  X,
-  Coins
-} from 'lucide-react';
 import { useState } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Box,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  Dashboard as DashboardIcon,
+  Receipt as ReceiptIcon,
+  Calculate as CalculateIcon,
+  CreditCard as CreditCardIcon,
+  CalendarToday as CalendarIcon,
+  Settings as SettingsIcon,
+  Help as HelpIcon,
+  AccountBalance as CoinsIcon,
+} from '@mui/icons-material';
 
 const Navigation = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const navItems = [
-    { path: '/', icon: LayoutDashboard, label: t('nav.dashboard') },
-    { path: '/transactions', icon: Receipt, label: t('nav.transactions') },
-    { path: '/calculator', icon: Calculator, label: t('nav.calculator') },
-    { path: '/payments', icon: CreditCard, label: t('nav.payments') },
-    { path: '/planning', icon: Calendar, label: t('nav.planning') },
-    { path: '/settings', icon: Settings, label: t('nav.settings') },
-    { path: '/help', icon: HelpCircle, label: t('nav.help') },
+    { path: '/', icon: DashboardIcon, label: t('nav.dashboard') },
+    { path: '/transactions', icon: ReceiptIcon, label: t('nav.transactions') },
+    { path: '/calculator', icon: CalculateIcon, label: t('nav.calculator') },
+    { path: '/payments', icon: CreditCardIcon, label: t('nav.payments') },
+    { path: '/planning', icon: CalendarIcon, label: t('nav.planning') },
+    { path: '/settings', icon: SettingsIcon, label: t('nav.settings') },
+    { path: '/help', icon: HelpIcon, label: t('nav.help') },
   ];
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
+  const handleDrawerToggle = () => {
+    setDrawerOpen(!drawerOpen);
+  };
+
+  const drawer = (
+    <Box sx={{ width: 250 }}>
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography variant="h6" component="div">
+          Ḥuqúqu’lláh
+        </Typography>
+        <IconButton onClick={handleDrawerToggle}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      <List>
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <ListItem key={item.path} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={isActive(item.path)}
+                onClick={handleDrawerToggle}
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: theme.palette.primary.main,
+                    color: theme.palette.primary.contrastText,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  },
+                }}
+              >
+                <ListItemIcon>
+                  <Icon />
+                </ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+    </Box>
+  );
+
   return (
-    <nav className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 shadow-xl">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+    <>
+      <AppBar position="static" sx={{ background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)' }}>
+        <Toolbar>
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-200">
-              <Coins className="h-6 w-6 text-white" />
-            </div>
-            <div className="text-white">
-              <span className="font-bold text-xl block leading-tight">
-                Ḥuqúqu’lláh
-              </span>
-              <span className="text-blue-100 text-sm font-medium">
-                Assistant
-              </span>
-            </div>
-          </Link>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  background: 'linear-gradient(45deg, #ffeb3b 30%, #ffc107 90%)',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mr: 2,
+                }}
+              >
+                <CoinsIcon sx={{ color: 'white' }} />
+              </Box>
+              <Box>
+                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                  Ḥuqúqu’lláh
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                  Assistant
+                </Typography>
+              </Box>
+            </Link>
+          </Box>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive(item.path)
-                      ? 'bg-white text-blue-700 shadow-lg transform scale-105'
-                      : 'text-blue-100 hover:text-white hover:bg-white/10 hover:shadow-md'
-                  }`}
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2 rounded-lg text-blue-100 hover:text-white hover:bg-white/10 transition-colors duration-200"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-blue-500/30">
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          {!isMobile && (
+            <Box sx={{ display: 'flex', gap: 1 }}>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <Link
+                  <IconButton
                     key={item.path}
+                    component={Link}
                     to={item.path}
-                    className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
-                      isActive(item.path)
-                        ? 'bg-white text-blue-700 shadow-lg'
-                        : 'text-blue-100 hover:text-white hover:bg-white/10'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    sx={{
+                      color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.7)',
+                      backgroundColor: isActive(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                      },
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                    }}
                   >
-                    <Icon size={20} />
-                    <span>{item.label}</span>
-                  </Link>
+                    <Icon sx={{ mr: 1 }} />
+                    <Typography variant="body2">{item.label}</Typography>
+                  </IconButton>
                 );
               })}
-            </div>
-          </div>
-        )}
-      </div>
-    </nav>
+            </Box>
+          )}
+
+          {/* Mobile menu button */}
+          {isMobile && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        variant="temporary"
+        open={drawerOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 250 },
+        }}
+      >
+        {drawer}
+      </Drawer>
+    </>
   );
 };
 
