@@ -37,6 +37,7 @@ function App() {
   const [appData, setAppData] = useState<AppData | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
 
   useEffect(() => {
@@ -80,6 +81,14 @@ function App() {
     }
 
     setIsLoading(false);
+
+    // Check if authentication is required
+    const finalSettings = loadedSettings || loadedAppData?.settings;
+    if (finalSettings?.security.pinEnabled) {
+      setShowSecurityModal(true);
+    } else {
+      setIsAuthenticated(true);
+    }
   }, []);
 
   const updateAppData = (newData: AppData) => {
@@ -138,6 +147,22 @@ function App() {
             </Typography>
           </Box>
         </Box>
+      </ThemeProvider>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <SecurityModal
+          open={true}
+          onClose={() => {}}
+          onSuccess={() => setIsAuthenticated(true)}
+          settings={settings}
+          updateSettings={updateSettings}
+          mode="auth"
+        />
       </ThemeProvider>
     );
   }
@@ -218,13 +243,6 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Container>
-
-          {showSecurityModal && (
-            <SecurityModal
-              onClose={() => setShowSecurityModal(false)}
-              onSuccess={() => setShowSecurityModal(false)}
-            />
-          )}
         </Box>
       </Router>
     </ThemeProvider>

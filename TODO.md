@@ -42,3 +42,14 @@
 - Calculator uses CalculationService for surplus calculation and gold conversion
 - Planning uses CalculationService for payment plan creation
 - UI uses translations and responsive design
+
+## Step 8: Add Google Drive Backup Feature ✅
+- Create GoogleDriveService for backup/restore functionality
+- Add Google API dependencies to package.json
+- Integrate backup/restore buttons in Settings component
+- Implement OAuth flow for Google Drive access
+
+## Step 9: Implement Authentication Flow at App Startup ✅
+- Add authentication state management in App_new.tsx
+- Show SecurityModal at startup if PIN is enabled
+- Prevent app access until authentication succeeds

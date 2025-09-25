@@ -16,10 +16,12 @@ import {
   Chip,
   IconButton,
   Divider,
-  Alert
+  Alert,
+  Snackbar
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, CloudUpload as CloudUploadIcon, CloudDownload as CloudDownloadIcon } from '@mui/icons-material';
 import type { AppData, UserSettings } from '../types';
+import { GoogleDriveService } from '../services/GoogleDriveService';
 
 interface SettingsProps {
   settings: UserSettings;
@@ -31,6 +33,11 @@ const Settings = ({ settings, updateSettings, appData }: SettingsProps) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<UserSettings>(settings);
   const [newCategory, setNewCategory] = useState('');
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   const handleInputChange = (field: keyof UserSettings, value: any) => {
     setFormData(prev => ({
@@ -267,6 +274,80 @@ const Settings = ({ settings, updateSettings, appData }: SettingsProps) => {
             />
           </Paper>
         </Grid>
+
+        {/* Backup & Restore */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              {t('settings.backup', 'Sauvegarde et Restauration')}
+            </Typography>
+
+            <Box sx={{ mb: 2 }}>
+              <Button
+                variant="outlined"
+                startIcon={<CloudUploadIcon />}
+                onClick={async () => {
+                  try {
+                    await GoogleDriveService.backupData();
+                    setSnackbar({
+                      open: true,
+                      message: t('settings.backupSuccess', 'Sauvegarde créée avec succès sur Google Drive'),
+                      severity: 'success'
+                    });
+                  } catch (error) {
+                    setSnackbar({
+                      open: true,
+                      message: t('settings.backupError', 'Erreur lors de la sauvegarde'),
+                      severity: 'error'
+                    });
+                  }
+                }}
+                sx={{ mr: 2 }}
+              >
+                {t('settings.backup', 'Sauvegarder sur Google Drive')}
+              </Button>
+
+              <Button
+                variant="outlined"
+                startIcon={<CloudDownloadIcon />}
+                onClick={async () => {
+                  try {
+                    const success = await GoogleDriveService.restoreData();
+                    if (success) {
+                      setSnackbar({
+                        open: true,
+                        message: t('settings.restoreSuccess', 'Données restaurées avec succès'),
+                        severity: 'success'
+                      });
+                      // Reload app data after restore
+                      window.location.reload();
+                    } else {
+                      setSnackbar({
+                        open: true,
+                        message: t('settings.restoreError', 'Erreur lors de la restauration'),
+                        severity: 'error'
+                      });
+                    }
+                  } catch (error) {
+                    setSnackbar({
+                      open: true,
+                      message: t('settings.restoreError', 'Erreur lors de la restauration'),
+                      severity: 'error'
+                    });
+                  }
+                }}
+              >
+                {t('settings.restore', 'Restaurer depuis Google Drive')}
+              </Button>
+            </Box>
+
+            {!GoogleDriveService.isSignedIn() && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                {t('settings.signInRequired', 'Connexion à Google Drive requise pour la sauvegarde')}
+              </Alert>
+            )}
+          </Paper>
+        </Grid>
       </Grid>
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
@@ -274,6 +355,16 @@ const Settings = ({ settings, updateSettings, appData }: SettingsProps) => {
           {t('settings.save', 'Enregistrer')}
         </Button>
       </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
