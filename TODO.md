@@ -48,6 +48,9 @@
 - Add Google API dependencies to package.json
 - Integrate backup/restore buttons in Settings component
 - Implement OAuth flow for Google Drive access
+- Add CSP headers for Google API compatibility
+- Create setup documentation (GOOGLE_DRIVE_SETUP.md)
+- Add configuration validation and user guidance
 
 ## Step 9: Implement Authentication Flow at App Startup ✅
 - Add authentication state management in App_new.tsx

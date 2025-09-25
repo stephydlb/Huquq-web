@@ -341,7 +341,13 @@ const Settings = ({ settings, updateSettings, appData }: SettingsProps) => {
               </Button>
             </Box>
 
-            {!GoogleDriveService.isSignedIn() && (
+            {GoogleDriveService.CLIENT_ID.includes('YOUR_CLIENT_ID') && (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                {t('settings.googleSetupRequired', 'Configuration Google Drive requise : Remplacez les identifiants dans GoogleDriveService.ts')}
+              </Alert>
+            )}
+
+            {!GoogleDriveService.isSignedIn() && !GoogleDriveService.CLIENT_ID.includes('YOUR_CLIENT_ID') && (
               <Alert severity="info" sx={{ mb: 2 }}>
                 {t('settings.signInRequired', 'Connexion à Google Drive requise pour la sauvegarde')}
               </Alert>
