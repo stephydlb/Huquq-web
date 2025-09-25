@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ interface DashboardProps {
 
 const Dashboard = ({ appData, settings }: DashboardProps) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   // Calculate balance due (simplified calculation)
   const totalIncome = appData.transactions
@@ -96,13 +98,13 @@ const Dashboard = ({ appData, settings }: DashboardProps) => {
           {t('dashboard.quickActions', 'Actions rapides')}
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Button variant="contained" startIcon={<AddIcon />}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/transactions')}>
             {t('dashboard.addIncome', 'Ajouter revenu')}
           </Button>
-          <Button variant="contained" startIcon={<TrendingUpIcon />}>
+          <Button variant="contained" startIcon={<TrendingUpIcon />} onClick={() => navigate('/transactions')}>
             {t('dashboard.addExpense', 'Ajouter dépense')}
           </Button>
-          <Button variant="outlined" startIcon={<ScheduleIcon />}>
+          <Button variant="outlined" startIcon={<ScheduleIcon />} onClick={() => navigate('/planning')}>
             {t('dashboard.schedulePayment', 'Planifier paiement')}
           </Button>
         </Box>
