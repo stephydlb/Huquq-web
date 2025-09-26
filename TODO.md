@@ -1,6 +1,10 @@
-- [x] Add backend dependencies to package.json
-- [x] Create server.js with Express and SQLite
-- [x] Create user registration endpoint
-- [x] Update Welcome.tsx with registration form
-- [x] Update package.json scripts for server
-- [x] Test user registration
+# Tailwind Removal Task
+
+## Steps to Complete
+
+- [x] Clean src/index.css by removing @tailwind directives
+- [x] Delete unused legacy file: src/App.tsx
+- [x] Delete unused legacy file: src/App_old.tsx
+- [x] Delete unused legacy file: src/components/Navigation.tsx
+- [x] Run `npm install` to update package-lock.json
+- [x] Verify the app builds and runs without Tailwind-related errors
