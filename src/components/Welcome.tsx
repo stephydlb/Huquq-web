@@ -22,7 +22,6 @@ import {
   CreditCard as CreditCardIcon,
   CalendarToday as CalendarIcon,
   Settings as SettingsIcon,
-  Help as HelpIcon,
   AccountBalance as CoinsIcon,
 } from '@mui/icons-material';
 import { StorageService } from '../services/StorageService';

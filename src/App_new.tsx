@@ -1,23 +1,23 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Container, CircularProgress, Typography } from '@mui/material';
 import { StorageService } from './services/StorageService';
 import type { AppData, UserSettings } from './types';
 
-// Components
-import Welcome from './components/Welcome';
-import Dashboard from './components/Dashboard_new';
-import Transactions from './components/Transactions';
-import Calculator from './components/Calculator';
-import Payments from './components/Payments';
-import Planning from './components/Planning';
-import Settings from './components/Settings';
-import Help from './components/Help';
-import Navigation from './components/Navigation_new';
-import SecurityModal from './components/SecurityModal';
+// Lazy loaded components
+const Welcome = lazy(() => import('./components/Welcome'));
+const Dashboard = lazy(() => import('./components/Dashboard_new'));
+const Transactions = lazy(() => import('./components/Transactions'));
+const Calculator = lazy(() => import('./components/Calculator'));
+const Payments = lazy(() => import('./components/Payments'));
+const Planning = lazy(() => import('./components/Planning'));
+const Settings = lazy(() => import('./components/Settings'));
+const Help = lazy(() => import('./components/Help'));
+const Navigation = lazy(() => import('./components/Navigation_new'));
+const SecurityModal = lazy(() => import('./components/SecurityModal'));
 
 const theme = createTheme({
   palette: {
@@ -146,10 +146,28 @@ function App() {
             </Box>
           </Box>
         ) : !hasUser ? (
-          <Routes>
-            <Route path="/" element={<Welcome />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <Suspense fallback={
+            <Box
+              sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box sx={{ textAlign: 'center' }}>
+                <CircularProgress sx={{ mb: 2 }} />
+                <Typography variant="body1" color="text.secondary">
+                  {t('common.loading')}
+                </Typography>
+              </Box>
+            </Box>
+          }>
+            <Routes>
+              <Route path="/" element={<Welcome />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         ) : !appData || !settings ? (
           <Box
             sx={{
@@ -175,91 +193,109 @@ function App() {
             mode="auth"
           />
         ) : (
-          <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
-            <Navigation />
+          <Suspense fallback={
+            <Box
+              sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box sx={{ textAlign: 'center' }}>
+                <CircularProgress sx={{ mb: 2 }} />
+                <Typography variant="body1" color="text.secondary">
+                  {t('common.loading')}
+                </Typography>
+              </Box>
+            </Box>
+          }>
+            <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+              <Navigation />
 
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <Container maxWidth="lg" sx={{ py: 4 }}>
-                    <Dashboard
-                      appData={appData}
-                      updateAppData={updateAppData}
-                      settings={settings}
-                    />
-                  </Container>
-                }
-              />
-              <Route
-                path="/transactions"
-                element={
-                  <Container maxWidth="lg" sx={{ py: 4 }}>
-                    <Transactions
-                      appData={appData}
-                      updateAppData={updateAppData}
-                      settings={settings}
-                    />
-                  </Container>
-                }
-              />
-              <Route
-                path="/calculator"
-                element={
-                  <Container maxWidth="lg" sx={{ py: 4 }}>
-                    <Calculator
-                      appData={appData}
-                      updateAppData={updateAppData}
-                      settings={settings}
-                    />
-                  </Container>
-                }
-              />
-              <Route
-                path="/payments"
-                element={
-                  <Container maxWidth="lg" sx={{ py: 4 }}>
-                    <Payments
-                      appData={appData}
-                      updateAppData={updateAppData}
-                      settings={settings}
-                    />
-                  </Container>
-                }
-              />
-              <Route
-                path="/planning"
-                element={
-                  <Container maxWidth="lg" sx={{ py: 4 }}>
-                    <Planning
-                      appData={appData}
-                      updateAppData={updateAppData}
-                    />
-                  </Container>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <Container maxWidth="lg" sx={{ py: 4 }}>
-                    <Settings
-                      settings={settings}
-                      updateSettings={updateSettings}
-                    />
-                  </Container>
-                }
-              />
-              <Route
-                path="/help"
-                element={
-                  <Container maxWidth="lg" sx={{ py: 4 }}>
-                    <Help />
-                  </Container>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Box>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <Container maxWidth="lg" sx={{ py: 4 }}>
+                      <Dashboard
+                        appData={appData}
+                        updateAppData={updateAppData}
+                        settings={settings}
+                      />
+                    </Container>
+                  }
+                />
+                <Route
+                  path="/transactions"
+                  element={
+                    <Container maxWidth="lg" sx={{ py: 4 }}>
+                      <Transactions
+                        appData={appData}
+                        updateAppData={updateAppData}
+                        settings={settings}
+                      />
+                    </Container>
+                  }
+                />
+                <Route
+                  path="/calculator"
+                  element={
+                    <Container maxWidth="lg" sx={{ py: 4 }}>
+                      <Calculator
+                        appData={appData}
+                        updateAppData={updateAppData}
+                        settings={settings}
+                      />
+                    </Container>
+                  }
+                />
+                <Route
+                  path="/payments"
+                  element={
+                    <Container maxWidth="lg" sx={{ py: 4 }}>
+                      <Payments
+                        appData={appData}
+                        updateAppData={updateAppData}
+                        settings={settings}
+                      />
+                    </Container>
+                  }
+                />
+                <Route
+                  path="/planning"
+                  element={
+                    <Container maxWidth="lg" sx={{ py: 4 }}>
+                      <Planning
+                        appData={appData}
+                        updateAppData={updateAppData}
+                      />
+                    </Container>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <Container maxWidth="lg" sx={{ py: 4 }}>
+                      <Settings
+                        settings={settings}
+                        updateSettings={updateSettings}
+                      />
+                    </Container>
+                  }
+                />
+                <Route
+                  path="/help"
+                  element={
+                    <Container maxWidth="lg" sx={{ py: 4 }}>
+                      <Help />
+                    </Container>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Box>
+          </Suspense>
         )}
       </Router>
     </ThemeProvider>

@@ -69,7 +69,11 @@ export class GoogleDriveService {
       await this.initialize();
       await this.signIn();
 
-      const data = StorageService.exportData();
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      if (!user) throw new Error('No user logged in');
+
+      const data = StorageService.exportData(user.id);
       const fileName = `huquq-backup-${new Date().toISOString().split('T')[0]}.json`;
 
       const fileMetadata = {
@@ -133,8 +137,12 @@ export class GoogleDriveService {
         throw new Error('Failed to download backup file');
       }
 
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      if (!user) throw new Error('No user logged in');
+
       const data = fileToRestore.body;
-      const success = StorageService.importData(data);
+      const success = StorageService.importData(data, user.id);
 
       if (!success) {
         throw new Error('Failed to import backup data. The file may be corrupted.');
