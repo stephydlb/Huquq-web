@@ -65,7 +65,6 @@ export class CalculationService {
    */
   static convertToGold(
     amount: number,
-    currency: 'USD' | 'EUR',
     goldPrice: GoldPrice,
     mithqalToGram: number = DEFAULT_MITHQAL_TO_GRAM
   ): number {
@@ -111,7 +110,6 @@ export class CalculationService {
    */
   static calculatePaymentPlan(
     totalAmount: number,
-    currency: 'USD' | 'EUR' | 'GOLD',
     frequency: 'monthly' | 'quarterly' | 'yearly',
     numberOfPayments: number,
     startDate: Date

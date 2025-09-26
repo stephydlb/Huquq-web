@@ -19,7 +19,7 @@ import {
   Snackbar
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, CloudUpload as CloudUploadIcon, CloudDownload as CloudDownloadIcon } from '@mui/icons-material';
-import type { AppData, UserSettings } from '../types';
+import type { UserSettings } from '../types';
 import { GoogleDriveService } from '../services/GoogleDriveService';
 
 interface SettingsProps {

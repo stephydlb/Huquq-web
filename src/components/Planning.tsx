@@ -58,7 +58,6 @@ const Planning = ({ appData, updateAppData }: PlanningProps) => {
 
     CalculationService.calculatePaymentPlan(
       totalAmount,
-      formData.currency,
       formData.frequency,
       numberOfPayments,
       startDate

@@ -98,7 +98,7 @@ const Calculator = ({ appData, updateAppData, settings }: CalculatorProps) => {
 
   const formatGold = (amount: number) => {
     if (!goldPrice) return 'N/A';
-    const goldAmount = CalculationService.convertToGold(amount, settings.currency, goldPrice, settings.mithqalToGram);
+    const goldAmount = CalculationService.convertToGold(amount, goldPrice, settings.mithqalToGram);
     return `${goldAmount.toFixed(2)} ${t('calculator.mithqal')}`;
   };
 
