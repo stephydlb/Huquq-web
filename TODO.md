@@ -1,2 +1,5 @@
-- [x] Edit Help.tsx to replace Baha'i resource Chips with clickable Buttons
-- [x] Add GitHub link button to the resources section
+- [x] Remove Tailwind dependencies from package.json
+- [x] Clean @tailwind directives from src/index.css
+- [x] Delete unused Tailwind files: src/App.tsx, src/components/Navigation.tsx, src/App_old.tsx
+- [x] Run npm install to update dependencies
+- [x] Test the app with npm run dev
