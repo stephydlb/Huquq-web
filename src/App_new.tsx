@@ -38,7 +38,6 @@ function App() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showSecurityModal, setShowSecurityModal] = useState(false);
 
   useEffect(() => {
     // Load data from storage
@@ -84,9 +83,7 @@ function App() {
 
     // Check if authentication is required
     const finalSettings = loadedSettings || loadedAppData?.settings;
-    if (finalSettings?.security.pinEnabled) {
-      setShowSecurityModal(true);
-    } else {
+    if (!finalSettings?.security.pinEnabled) {
       setIsAuthenticated(true);
     }
   }, []);
@@ -222,7 +219,6 @@ function App() {
                   <Planning
                     appData={appData}
                     updateAppData={updateAppData}
-                    settings={settings}
                   />
                 }
               />
@@ -232,7 +228,6 @@ function App() {
                   <Settings
                     settings={settings}
                     updateSettings={updateSettings}
-                    appData={appData}
                   />
                 }
               />

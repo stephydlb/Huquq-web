@@ -148,26 +148,24 @@ function App() {
                 />
               }
             />
-            <Route
-              path="/planning"
-              element={
-                <Planning
-                  appData={appData}
-                  updateAppData={updateAppData}
-                  settings={settings}
-                />
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <Settings
-                  settings={settings}
-                  updateSettings={updateSettings}
-                  appData={appData}
-                />
-              }
-            />
+              <Route
+                path="/planning"
+                element={
+                  <Planning
+                    appData={appData}
+                    updateAppData={updateAppData}
+                  />
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <Settings
+                    settings={settings}
+                    updateSettings={updateSettings}
+                  />
+                }
+              />
             <Route
               path="/help"
               element={<Help />}
@@ -178,6 +176,9 @@ function App() {
 
         {showSecurityModal && (
           <SecurityModal
+            open={showSecurityModal}
+            settings={settings}
+            updateSettings={updateSettings}
             onClose={() => setShowSecurityModal(false)}
             onSuccess={() => setShowSecurityModal(false)}
           />

@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AppData, UserSettings, PaymentPlan } from '../types';
+import type { AppData, PaymentPlan } from '../types';
 import { CalculationService } from '../services/CalculationService';
 import {
   Box,
   Typography,
-  Paper,
   Button,
   TextField,
   FormControl,
@@ -21,20 +20,15 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
   Alert
 } from '@mui/material';
 
 interface PlanningProps {
   appData: AppData;
   updateAppData: (data: AppData) => void;
-  settings: UserSettings;
 }
 
-const Planning = ({ appData, updateAppData, settings }: PlanningProps) => {
+const Planning = ({ appData, updateAppData }: PlanningProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -62,7 +56,7 @@ const Planning = ({ appData, updateAppData, settings }: PlanningProps) => {
       return;
     }
 
-    const { installmentAmount, schedule } = CalculationService.calculatePaymentPlan(
+    CalculationService.calculatePaymentPlan(
       totalAmount,
       formData.currency,
       formData.frequency,

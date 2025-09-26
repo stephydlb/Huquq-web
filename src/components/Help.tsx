@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -10,9 +10,7 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
   Divider,
-  Chip,
   Button,
   Grid,
   Card,
@@ -26,9 +24,7 @@ import {
   Payment as PaymentIcon,
   Schedule as ScheduleIcon,
   Settings as SettingsIcon,
-  Help as HelpIcon,
   Email as EmailIcon,
-  Phone as PhoneIcon,
   Web as WebIcon
 } from '@mui/icons-material';
 
@@ -36,7 +32,7 @@ const Help = () => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<string | false>('getting-started');
 
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+  const handleChange = (panel: string) => (_: any, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
 
@@ -257,7 +253,7 @@ const Help = () => {
               <Box>
                 <Typography variant="h6">{t('help.contact.email', 'Email')}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  support@huququllah-assistant.com
+                  stephkalubiaka@gmail.com
                 </Typography>
               </Box>
             </Box>
@@ -281,9 +277,61 @@ const Help = () => {
           {t('help.contact.resources', 'Ressources Additionnelles')}
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          <Chip label={t('help.contact.bahaiOrg', 'Site officiel de la Foi bahá\'íe')} />
-          <Chip label={t('help.contact.huququllah', 'Informations sur le Ḥuqúqu\'lláh')} />
-          <Chip label={t('help.contact.community', 'Communauté bahá\'íe locale')} />
+          <Button
+            variant="outlined"
+            startIcon={<WebIcon />}
+            component="a"
+            href="https://www.bahai.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          >
+            {t('help.contact.bahaiOrg', 'Site officiel de la Foi bahá\'íe')}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<WebIcon />}
+            component="a"
+            href="https://www.bahai.org/beliefs/huqququllah"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          >
+            {t('help.contact.huququllah', 'Informations sur le Ḥuqúqu\'lláh')}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<WebIcon />}
+            component="a"
+            href="https://www.bahai.fr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          >
+            {t('help.contact.community', 'Communauté bahá\'íe locale')}
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<WebIcon />}
+            component="a"
+            href="https://mediatheque.bahai.fr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          >
+            Médiathèque Bahá'íe
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<WebIcon />}
+            component="a"
+            href="https://github.com/stephydlb"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+          >
+            Mon compte GitHub
+          </Button>
         </Box>
       </Paper>
     </Box>

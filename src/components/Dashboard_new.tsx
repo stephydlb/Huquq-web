@@ -1,11 +1,9 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardContent,
   Typography,
-  Grid,
   Button,
   Box,
   List,
@@ -117,7 +115,7 @@ const Dashboard = ({ appData, settings }: DashboardProps) => {
           </Typography>
           <List>
             {recentTransactions.map((transaction, index) => (
-              <React.Fragment key={transaction.id}>
+              <>
                 <ListItem>
                   <ListItemText
                     primary={`${transaction.type === 'income' ? t('transaction.income', 'Revenu') : t('transaction.expense', 'Dépense')}: ${transaction.description}`}
@@ -125,7 +123,7 @@ const Dashboard = ({ appData, settings }: DashboardProps) => {
                   />
                 </ListItem>
                 {index < recentTransactions.length - 1 && <Divider />}
-              </React.Fragment>
+              </>
             ))}
           </List>
         </CardContent>

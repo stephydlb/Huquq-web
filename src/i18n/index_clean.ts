@@ -38,7 +38,6 @@ const resources = {
       'transactions.description': 'Description',
       'transactions.category': 'Catégorie',
       'transactions.amount': 'Montant',
-      'transactions.essential': 'Essentiel',
       'transactions.actions': 'Actions',
       'transactions.edit': 'Modifier',
       'transactions.delete': 'Supprimer',

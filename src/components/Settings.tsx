@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -15,7 +15,6 @@ import {
   Grid,
   Chip,
   IconButton,
-  Divider,
   Alert,
   Snackbar
 } from '@mui/material';
@@ -26,10 +25,9 @@ import { GoogleDriveService } from '../services/GoogleDriveService';
 interface SettingsProps {
   settings: UserSettings;
   updateSettings: (settings: UserSettings) => void;
-  appData: AppData;
 }
 
-const Settings = ({ settings, updateSettings, appData }: SettingsProps) => {
+const Settings = ({ settings, updateSettings }: SettingsProps) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<UserSettings>(settings);
   const [newCategory, setNewCategory] = useState('');

@@ -1,5 +1,4 @@
 import type { GoldPrice } from '../types';
-import { API_ENDPOINTS } from '../utils/constants';
 
 export class GoldPriceService {
   private static cache: Map<string, GoldPrice> = new Map();

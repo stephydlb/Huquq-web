@@ -16,9 +16,7 @@ import {
   Paper,
   Switch,
   FormControlLabel,
-  Divider,
-  Chip,
-  Avatar
+  Chip
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -50,7 +48,7 @@ const SecurityModal = ({ open, onClose, onSuccess, settings, updateSettings, mod
     message: '',
     severity: 'success'
   });
-  const [settingsMode, setSettingsMode] = useState(mode === 'settings');
+  const [settingsMode] = useState(mode === 'settings');
   const [biometricSupported, setBiometricSupported] = useState(false);
 
   useEffect(() => {
