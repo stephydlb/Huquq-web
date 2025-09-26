@@ -1,5 +1,0 @@
-- [x] Remove Tailwind dependencies from package.json
-- [x] Clean @tailwind directives from src/index.css
-- [x] Delete unused Tailwind files: src/App.tsx, src/components/Navigation.tsx, src/App_old.tsx
-- [x] Run npm install to update dependencies
-- [x] Test the app with npm run dev
