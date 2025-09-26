@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -18,9 +18,10 @@ import {
   Alert,
   Snackbar
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, CloudUpload as CloudUploadIcon, CloudDownload as CloudDownloadIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, CloudUpload as CloudUploadIcon, CloudDownload as CloudDownloadIcon, FileDownload as FileDownloadIcon, FileUpload as FileUploadIcon } from '@mui/icons-material';
 import type { UserSettings } from '../types';
 import { GoogleDriveService } from '../services/GoogleDriveService';
+import { StorageService } from '../services/StorageService';
 
 interface SettingsProps {
   settings: UserSettings;
@@ -36,6 +37,8 @@ const Settings = ({ settings, updateSettings }: SettingsProps) => {
     message: '',
     severity: 'success'
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (field: keyof UserSettings, value: any) => {
     setFormData(prev => ({

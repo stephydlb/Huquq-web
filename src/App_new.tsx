@@ -8,6 +8,7 @@ import { StorageService } from './services/StorageService';
 import type { AppData, UserSettings } from './types';
 
 // Components
+import Welcome from './components/Welcome';
 import Dashboard from './components/Dashboard_new';
 import Transactions from './components/Transactions';
 import Calculator from './components/Calculator';
@@ -38,64 +39,85 @@ function App() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [hasUser, setHasUser] = useState(false);
 
   useEffect(() => {
-    // Load data from storage
-    const loadedAppData = StorageService.loadAppData();
-    const loadedSettings = StorageService.loadUserSettings();
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
 
-    if (loadedAppData) {
-      setAppData(loadedAppData);
-    } else {
-      // Initialize with default data
-      const defaultData: AppData = {
-        transactions: [],
-        payments: [],
-        paymentPlans: [],
-        settings: {
-          language: 'fr',
-          currency: 'EUR',
-          goldUnit: 'mithqal',
-          mithqalToGram: 4.25,
-          essentialCategories: ['Logement', 'Nourriture', 'Santé', 'Éducation', 'Transport'],
-          notifications: {
-            enabled: true,
-            paymentReminders: true,
-            goldPriceAlerts: false
-          },
-          security: {
-            pinEnabled: false,
-            biometricEnabled: false
+    if (user) {
+      setHasUser(true);
+      setCurrentUser(user);
+      const userId = user.id;
+
+      // Load user-specific data
+      const loadedAppData = StorageService.loadAppData(userId);
+      const loadedSettings = StorageService.loadUserSettings(userId);
+
+      if (loadedAppData) {
+        setAppData(loadedAppData);
+      } else {
+        // Initialize with default data for this user
+        const defaultData: AppData = {
+          transactions: [],
+          payments: [],
+          paymentPlans: [],
+          settings: {
+            language: 'fr',
+            currency: 'EUR',
+            goldUnit: 'mithqal',
+            mithqalToGram: 4.25,
+            essentialCategories: ['Logement', 'Nourriture', 'Santé', 'Éducation', 'Transport'],
+            notifications: {
+              enabled: true,
+              paymentReminders: true,
+              goldPriceAlerts: false
+            },
+            security: {
+              pinEnabled: false,
+              biometricEnabled: false
+            }
           }
-        }
-      };
-      setAppData(defaultData);
-      StorageService.saveAppData(defaultData);
-    }
+        };
+        setAppData(defaultData);
+        StorageService.saveAppData(defaultData, userId);
+      }
 
-    if (loadedSettings) {
-      setSettings(loadedSettings);
-    } else if (loadedAppData?.settings) {
-      setSettings(loadedAppData.settings);
+      if (loadedSettings) {
+        setSettings(loadedSettings);
+      } else if (loadedAppData?.settings) {
+        setSettings(loadedAppData.settings);
+      }
+
+      // Check if PIN is required
+      const finalSettings = loadedSettings || loadedAppData?.settings;
+      if (finalSettings?.security.pinEnabled) {
+        setIsAuthenticated(false);
+      } else {
+        setIsAuthenticated(true);
+      }
+    } else {
+      // No user, show Welcome
+      setHasUser(false);
+      setIsAuthenticated(false);
     }
 
     setIsLoading(false);
-
-    // Check if authentication is required
-    const finalSettings = loadedSettings || loadedAppData?.settings;
-    if (!finalSettings?.security.pinEnabled) {
-      setIsAuthenticated(true);
-    }
   }, []);
 
   const updateAppData = (newData: AppData) => {
     setAppData(newData);
-    StorageService.saveAppData(newData);
+    if (currentUser) {
+      StorageService.saveAppData(newData, currentUser.id);
+    }
   };
 
   const updateSettings = (newSettings: UserSettings) => {
     setSettings(newSettings);
-    StorageService.saveUserSettings(newSettings);
+    if (currentUser) {
+      StorageService.saveUserSettings(newSettings, currentUser.id);
+    }
 
     if (appData) {
       const updatedData = { ...appData, settings: newSettings };
@@ -103,142 +125,142 @@ function App() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box
-          sx={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Box sx={{ textAlign: 'center' }}>
-            <CircularProgress sx={{ mb: 2 }} />
-            <Typography variant="body1" color="text.secondary">
-              {t('common.loading')}
-            </Typography>
-          </Box>
-        </Box>
-      </ThemeProvider>
-    );
-  }
-
-  if (!appData || !settings) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box
-          sx={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body1" color="error">
-              {t('common.error')}
-            </Typography>
-          </Box>
-        </Box>
-      </ThemeProvider>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <SecurityModal
-          open={true}
-          onClose={() => {}}
-          onSuccess={() => setIsAuthenticated(true)}
-          settings={settings}
-          updateSettings={updateSettings}
-          mode="auth"
-        />
-      </ThemeProvider>
-    );
-  }
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
-          <Navigation />
+        {isLoading ? (
+          <Box
+            sx={{
+              minHeight: '100vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box sx={{ textAlign: 'center' }}>
+              <CircularProgress sx={{ mb: 2 }} />
+              <Typography variant="body1" color="text.secondary">
+                {t('common.loading')}
+              </Typography>
+            </Box>
+          </Box>
+        ) : !hasUser ? (
+          <Routes>
+            <Route path="/" element={<Welcome />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        ) : !appData || !settings ? (
+          <Box
+            sx={{
+              minHeight: '100vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="body1" color="error">
+                {t('common.error')}
+              </Typography>
+            </Box>
+          </Box>
+        ) : !isAuthenticated ? (
+          <SecurityModal
+            open={true}
+            onClose={() => {}}
+            onSuccess={() => setIsAuthenticated(true)}
+            settings={settings}
+            updateSettings={updateSettings}
+            mode="auth"
+          />
+        ) : (
+          <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
+            <Navigation />
 
-          <Container maxWidth="lg" sx={{ py: 4 }}>
             <Routes>
               <Route
                 path="/"
                 element={
-                  <Dashboard
-                    appData={appData}
-                    updateAppData={updateAppData}
-                    settings={settings}
-                  />
+                  <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <Dashboard
+                      appData={appData}
+                      updateAppData={updateAppData}
+                      settings={settings}
+                    />
+                  </Container>
                 }
               />
               <Route
                 path="/transactions"
                 element={
-                  <Transactions
-                    appData={appData}
-                    updateAppData={updateAppData}
-                    settings={settings}
-                  />
+                  <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <Transactions
+                      appData={appData}
+                      updateAppData={updateAppData}
+                      settings={settings}
+                    />
+                  </Container>
                 }
               />
               <Route
                 path="/calculator"
                 element={
-                  <Calculator
-                    appData={appData}
-                    updateAppData={updateAppData}
-                    settings={settings}
-                  />
+                  <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <Calculator
+                      appData={appData}
+                      updateAppData={updateAppData}
+                      settings={settings}
+                    />
+                  </Container>
                 }
               />
               <Route
                 path="/payments"
                 element={
-                  <Payments
-                    appData={appData}
-                    updateAppData={updateAppData}
-                    settings={settings}
-                  />
+                  <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <Payments
+                      appData={appData}
+                      updateAppData={updateAppData}
+                      settings={settings}
+                    />
+                  </Container>
                 }
               />
               <Route
                 path="/planning"
                 element={
-                  <Planning
-                    appData={appData}
-                    updateAppData={updateAppData}
-                  />
+                  <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <Planning
+                      appData={appData}
+                      updateAppData={updateAppData}
+                    />
+                  </Container>
                 }
               />
               <Route
                 path="/settings"
                 element={
-                  <Settings
-                    settings={settings}
-                    updateSettings={updateSettings}
-                  />
+                  <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <Settings
+                      settings={settings}
+                      updateSettings={updateSettings}
+                    />
+                  </Container>
                 }
               />
               <Route
                 path="/help"
-                element={<Help />}
+                element={
+                  <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <Help />
+                  </Container>
+                }
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </Container>
-        </Box>
+          </Box>
+        )}
       </Router>
     </ThemeProvider>
   );

@@ -1,0 +1,6 @@
+- [x] Add backend dependencies to package.json
+- [x] Create server.js with Express and SQLite
+- [x] Create user registration endpoint
+- [x] Update Welcome.tsx with registration form
+- [x] Update package.json scripts for server
+- [x] Test user registration
