@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
@@ -28,6 +28,7 @@ import { StorageService } from '../services/StorageService';
 
 const Welcome = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const theme = useTheme();
   const [tab, setTab] = useState(0); // 0: register, 1: login
   const [email, setEmail] = useState('');
@@ -188,7 +189,7 @@ const Welcome = () => {
                   }
                   localStorage.setItem('user', JSON.stringify(user));
                   setTimeout(() => {
-                    window.location.href = '/dashboard';
+                    navigate('/');
                   }, 1500);
                 } catch (error) {
                   setMessage({ type: 'error', text: 'Erreur lors de l\'authentification' });
@@ -209,7 +210,7 @@ const Welcome = () => {
 
           <Button
             component={Link}
-            to="/dashboard"
+            to="/"
             variant="outlined"
             size="large"
             sx={{
