@@ -19,6 +19,14 @@ app.use(cors({
   credentials: true
 }));
 
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Catch all handler: send back index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 const dbPath = path.join(__dirname, 'users.db');
 const db = new sqlite3.Database(dbPath);
 
