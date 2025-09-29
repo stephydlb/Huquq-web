@@ -189,7 +189,7 @@ const Welcome = () => {
                   }
                   localStorage.setItem('user', JSON.stringify(user));
                   setTimeout(() => {
-                    window.location.href = '/';
+                    navigate('/');
                   }, 1500);
                 } catch (error) {
                   setMessage({ type: 'error', text: 'Erreur lors de l\'authentification' });
