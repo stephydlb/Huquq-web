@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import supabase from '../services/SupabaseService';
 import {
   Box,
   Typography,
@@ -44,42 +45,35 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
   const [clientPayments, setClientPayments] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`/my-clients?repId=${currentUserId}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch clients');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setClients(data);
-      })
-      .catch((err) => {
-        setError(err.message);
+    const fetchClients = async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('representativeId', currentUserId);
+
+      if (error) {
+        setError(error.message);
         setSnackbarOpen(true);
-      });
+      } else {
+        setClients(data || []);
+      }
+    };
+
+    fetchClients();
   }, [currentUserId]);
 
-  const fetchClientDetails = (clientId: string) => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-    // Fetch payments
-    fetch(`${backendUrl}/client-payments/${currentUserId}/${clientId}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch client payments');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setClientPayments(data);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setSnackbarOpen(true);
-      });
+  const fetchClientDetails = async (clientId: string) => {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('clientId', clientId);
 
-    // TODO: Fetch transactions and plans similarly
-    // For now, they are not implemented
+    if (error) {
+      setError(error.message);
+      setSnackbarOpen(true);
+    } else {
+      setClientPayments(data || []);
+    }
   };
 
   const handleClientAction = (clientId: string) => {
@@ -88,45 +82,45 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
     fetchClientDetails(clientId);
   };
 
-  const handleAddClient = () => {
+  const handleAddClient = async () => {
     if (!newClientName || !newClientEmail || !newClientPassword) {
       setError('Name, Email, and Password are required');
       setSnackbarOpen(true);
       return;
     }
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-    fetch(`${backendUrl}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: newClientEmail,
+      password: newClientPassword,
+      user_metadata: {
         name: newClientName,
-        email: newClientEmail,
-        password: newClientPassword,
         role: 'client',
         representativeId: currentUserId,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          if (res.status === 409) {
-            throw new Error('Client already exists');
-          }
-          throw new Error('Failed to add client');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setClients((prev) => [...prev, { id: data.userId, name: newClientName, email: newClientEmail }]);
-        setAddDialogOpen(false);
-        setNewClientName('');
-        setNewClientEmail('');
-        setNewClientPassword('');
-      })
-      .catch((err) => {
-        setError(err.message);
-        setSnackbarOpen(true);
-      });
+      },
+    });
+
+    if (error) {
+      if (error.message.includes('duplicate key value')) {
+        setError('Client already exists');
+      } else {
+        setError('Failed to add client');
+      }
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (data) {
+      const newClient = {
+        id: data.user.id,
+        name: newClientName,
+        email: newClientEmail,
+      };
+      setClients((prev) => [...prev, newClient]);
+      setAddDialogOpen(false);
+      setNewClientName('');
+      setNewClientEmail('');
+      setNewClientPassword('');
+    }
   };
 
   return (
