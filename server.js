@@ -32,7 +32,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true
 }));
 
@@ -100,7 +100,7 @@ db.serialize(() => {
 
 // POST /register - Register new user
 app.post('/register', async (req, res) => {
-  const { email, name, password, role } = req.body;
+  const { email, name, password, role, representativeId } = req.body;
 
   if (!email || !name || !password || !role) {
     return res.status(400).json({ error: 'Email, name, password, and role are required' });
@@ -126,8 +126,8 @@ app.post('/register', async (req, res) => {
 
       // Insert new user
       db.run(
-        'INSERT INTO users (id, email, name, passwordHash, role) VALUES (?, ?, ?, ?, ?)',
-        [id, email, name, passwordHash, role],
+        'INSERT INTO users (id, email, name, passwordHash, role, representative_id) VALUES (?, ?, ?, ?, ?, ?)',
+        [id, email, name, passwordHash, role, representativeId || null],
         function(err) {
           if (err) {
             console.error('INSERT error:', err);
@@ -237,6 +237,19 @@ app.get('/client-payments/:repId', (req, res) => {
   });
 });
 
+// GET /client-payments/:repId/:clientId - Get payments for a specific client
+app.get('/client-payments/:repId/:clientId', (req, res) => {
+  const repId = req.params.repId;
+  const clientId = req.params.clientId;
+
+  db.all(`SELECT p.* FROM payments p JOIN users u ON p.user_id = u.id WHERE u.representative_id = ? AND u.id = ?`, [repId, clientId], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(rows);
+  });
+});
+
 // POST /contact - Send message to representative
 app.post('/contact', (req, res) => {
   const { userId, message } = req.body;
@@ -264,6 +277,59 @@ app.get('/my-clients', (req, res) => {
     }
     res.json(rows);
   });
+});
+
+// POST /add-client - Add a new client for a representative
+app.post('/add-client', async (req, res) => {
+  const { repId, name, email } = req.body;
+
+  if (!repId || !name || !email) {
+    return res.status(400).json({ error: 'repId, name, and email are required' });
+  }
+
+  try {
+    // Check if rep exists and is representative
+    db.get("SELECT id FROM users WHERE id = ? AND role = 'representative'", [repId], (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      if (!row) {
+        return res.status(400).json({ error: 'Invalid representative' });
+      }
+
+      // Check if client already exists
+      db.get('SELECT id FROM users WHERE email = ?', [email], (err, existing) => {
+        if (err) {
+          return res.status(500).json({ error: 'Database error' });
+        }
+        if (existing) {
+          return res.status(409).json({ error: 'Client already exists' });
+        }
+
+        // Generate a default password
+        const tempPassword = 'temp123';
+        bcrypt.hash(tempPassword, SALT_ROUNDS, (err, passwordHash) => {
+          if (err) {
+            return res.status(500).json({ error: 'Password hash error' });
+          }
+
+          const id = uuidv4();
+          db.run(
+            'INSERT INTO users (id, email, name, passwordHash, role, representative_id) VALUES (?, ?, ?, ?, ?, ?)',
+            [id, email, name, passwordHash, 'client', repId],
+            function(err) {
+              if (err) {
+                return res.status(500).json({ error: 'Failed to add client' });
+              }
+              res.status(201).json({ id, name, email });
+            }
+          );
+        });
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // GET /user/:id - Get user info
