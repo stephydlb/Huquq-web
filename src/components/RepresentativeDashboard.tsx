@@ -84,6 +84,11 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
           </Table>
         </TableContainer>
       )}
+      <Box sx={{ mt: 3 }}>
+        <Button variant="contained" color="primary" onClick={() => alert('Add new client functionality')}>
+          Add New Client
+        </Button>
+      </Box>
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}

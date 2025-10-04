@@ -27,16 +27,25 @@ import {
   Settings as SettingsIcon,
   Help as HelpIcon,
   AccountBalance as CoinsIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 
-const Navigation = () => {
+interface NavigationProps {
+  currentUser?: { id: string; email: string; name: string; role: string };
+}
+
+const Navigation = ({ currentUser }: NavigationProps) => {
   const { t } = useTranslation();
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const navItems = [
+  const navItems = currentUser?.role === 'representative' ? [
+    { path: '/representative-dashboard', icon: PeopleIcon, label: 'Representative Dashboard' },
+    { path: '/settings', icon: SettingsIcon, label: t('nav.settings') },
+    { path: '/help', icon: HelpIcon, label: t('nav.help') },
+  ] : [
     { path: '/', icon: DashboardIcon, label: t('nav.dashboard') },
     { path: '/transactions', icon: ReceiptIcon, label: t('nav.transactions') },
     { path: '/calculator', icon: CalculateIcon, label: t('nav.calculator') },

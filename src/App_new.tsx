@@ -212,7 +212,7 @@ function App() {
             </Box>
           }>
             <Box sx={{ minHeight: '100vh', backgroundColor: 'background.default' }}>
-              <Navigation />
+              <Navigation currentUser={currentUser} />
 
               <Routes>
                 <Route
