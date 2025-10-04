@@ -26,7 +26,6 @@ import {
   CalendarToday as CalendarIcon,
   Settings as SettingsIcon,
   Help as HelpIcon,
-  AccountBalance as CoinsIcon,
   People as PeopleIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';

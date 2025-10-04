@@ -42,8 +42,6 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [tabIndex, setTabIndex] = useState(0);
   const [clientPayments, setClientPayments] = useState<any[]>([]);
-  const [clientTransactions, setClientTransactions] = useState<any[]>([]);
-  const [clientPlans, setClientPlans] = useState<any[]>([]);
 
   useEffect(() => {
     fetch(`/my-clients?repId=${currentUserId}`)
@@ -80,9 +78,7 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
       });
 
     // TODO: Fetch transactions and plans similarly
-    // For now, clear them
-    setClientTransactions([]);
-    setClientPlans([]);
+    // For now, they are not implemented
   };
 
   const handleClientAction = (clientId: string) => {
@@ -212,7 +208,7 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
         <DialogTitle>Manage Client</DialogTitle>
         <DialogContent>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)}>
+            <Tabs value={tabIndex} onChange={(_e, newValue) => setTabIndex(newValue)}>
               <Tab label="Payments" />
               <Tab label="Transactions" />
               <Tab label="Planning" />
