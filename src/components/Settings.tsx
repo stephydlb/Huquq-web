@@ -21,7 +21,8 @@ import {
 import type { SelectChangeEvent } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, CloudUpload as CloudUploadIcon, CloudDownload as CloudDownloadIcon } from '@mui/icons-material';
 import type { UserSettings } from '../types';
-import { GoogleDriveService } from '../services/GoogleDriveService';
+import { StorageService } from '../services/StorageService';
+
 
 interface SettingsProps {
   settings: UserSettings;
@@ -373,36 +374,64 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
             </Typography>
 
             <Box sx={{ mb: 2 }}>
-              <Button
-                variant="outlined"
-                startIcon={<CloudUploadIcon />}
-                onClick={async () => {
-                  try {
-                    await GoogleDriveService.backupData();
-                    setSnackbar({
-                      open: true,
-                      message: t('settings.backupSuccess', 'Sauvegarde créée avec succès sur Google Drive'),
-                      severity: 'success'
-                    });
-                  } catch (error) {
-                    setSnackbar({
-                      open: true,
-                      message: t('settings.backupError', 'Erreur lors de la sauvegarde'),
-                      severity: 'error'
-                    });
-                  }
-                }}
-                sx={{ mr: 2 }}
-              >
-                {t('settings.backup', 'Sauvegarder sur Google Drive')}
-              </Button>
+            <Button
+              variant="outlined"
+              startIcon={<CloudUploadIcon />}
+              onClick={() => {
+                try {
+                  const userStr = localStorage.getItem('user');
+                  const user = userStr ? JSON.parse(userStr) : null;
+                  if (!user) throw new Error('No user logged in');
 
-              <Button
-                variant="outlined"
-                startIcon={<CloudDownloadIcon />}
-                onClick={async () => {
+                  const data = StorageService.exportData(user.id);
+                  const blob = new Blob([data], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `huquq-backup-${new Date().toISOString().split('T')[0]}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+
+                  setSnackbar({
+                    open: true,
+                    message: t('settings.backupSuccess', 'Sauvegarde créée avec succès'),
+                    severity: 'success'
+                  });
+                } catch (error) {
+                  setSnackbar({
+                    open: true,
+                    message: t('settings.backupError', 'Erreur lors de la sauvegarde'),
+                    severity: 'error'
+                  });
+                }
+              }}
+              sx={{ mr: 2 }}
+            >
+              {t('settings.backup', 'Sauvegarder localement')}
+            </Button>
+
+            <Button
+              variant="outlined"
+              startIcon={<CloudDownloadIcon />}
+              component="label"
+            >
+              {t('settings.restore', 'Restaurer depuis un fichier')}
+              <input
+                type="file"
+                accept="application/json"
+                hidden
+                onChange={async (e) => {
                   try {
-                    const success = await GoogleDriveService.restoreData();
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    const text = await file.text();
+                    const userStr = localStorage.getItem('user');
+                    const user = userStr ? JSON.parse(userStr) : null;
+                    if (!user) throw new Error('No user logged in');
+
+                    const success = StorageService.importData(text, user.id);
                     if (success) {
                       setSnackbar({
                         open: true,
@@ -426,18 +455,17 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
                     });
                   }
                 }}
-              >
-                {t('settings.restore', 'Restaurer depuis Google Drive')}
-              </Button>
+              />
+            </Button>
             </Box>
 
-            {GoogleDriveService.CLIENT_ID.includes('YOUR_CLIENT_ID') && (
+            {false && (
               <Alert severity="warning" sx={{ mb: 2 }}>
                 {t('settings.googleSetupRequired', 'Configuration Google Drive requise : Remplacez les identifiants dans GoogleDriveService.ts')}
               </Alert>
             )}
 
-            {!GoogleDriveService.isSignedIn() && !GoogleDriveService.CLIENT_ID.includes('YOUR_CLIENT_ID') && (
+            {false && (
               <Alert severity="info" sx={{ mb: 2 }}>
                 {t('settings.signInRequired', 'Connexion à Google Drive requise pour la sauvegarde')}
               </Alert>

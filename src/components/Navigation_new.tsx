@@ -128,18 +128,17 @@ const Navigation = ({ currentUser }: NavigationProps) => {
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Link to="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
               <Box
+                component="img"
+                src="/logo/Logo Huququllah - Étoile 9 pointes Monoline.png"
+                alt="Huququllah Logo"
                 sx={{
                   width: 40,
                   height: 40,
-                  background: 'linear-gradient(45deg, #ffeb3b 30%, #ffc107 90%)',
                   borderRadius: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  objectFit: 'contain',
                   mr: 2,
                 }}
               >
-                <CoinsIcon sx={{ color: 'white' }} />
               </Box>
               <Box>
                 <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
@@ -157,31 +156,50 @@ const Navigation = ({ currentUser }: NavigationProps) => {
             <Box sx={{ display: 'flex', gap: 1 }}>
               {navItems.map((item) => {
                 const Icon = item.icon;
-                return (
-                  <IconButton
-                    key={item.path}
-                    component={item.action ? 'button' : Link}
-                    onClick={() => {
-                      if (item.action) {
+                if (item.action) {
+                  return (
+                    <IconButton
+                      key={item.path}
+                      onClick={() => {
                         item.action();
-                      }
-                      setDrawerOpen(false);
-                    }}
-                    sx={{
-                      color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.7)',
-                      backgroundColor: isActive(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
-                      '&:hover': {
-                        backgroundColor: 'rgba(255,255,255,0.1)',
-                      },
-                      px: 2,
-                      py: 1,
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Icon sx={{ mr: 1 }} />
-                    <Typography variant="body2">{item.label}</Typography>
-                  </IconButton>
-                );
+                        setDrawerOpen(false);
+                      }}
+                      sx={{
+                        color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.7)',
+                        backgroundColor: isActive(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
+                        '&:hover': {
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                        },
+                        px: 2,
+                        py: 1,
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Icon sx={{ mr: 1 }} />
+                      <Typography variant="body2">{item.label}</Typography>
+                    </IconButton>
+                  );
+                } else {
+                  return (
+                    <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }}>
+                      <IconButton
+                        sx={{
+                          color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.7)',
+                          backgroundColor: isActive(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                          },
+                          px: 2,
+                          py: 1,
+                          borderRadius: 2,
+                        }}
+                      >
+                        <Icon sx={{ mr: 1 }} />
+                        <Typography variant="body2">{item.label}</Typography>
+                      </IconButton>
+                    </Link>
+                  );
+                }
               })}
             </Box>
           )}

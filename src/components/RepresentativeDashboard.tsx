@@ -46,7 +46,7 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
   const [clientPlans, setClientPlans] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch(`/api/my-clients?repId=${currentUserId}`)
+    fetch(`/my-clients?repId=${currentUserId}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error('Failed to fetch clients');
@@ -64,7 +64,7 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
 
   const fetchClientDetails = (clientId: string) => {
     // Fetch payments
-    fetch(`/api/client-payments/${currentUserId}/${clientId}`)
+    fetch(`/client-payments/${currentUserId}/${clientId}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error('Failed to fetch client payments');
@@ -111,6 +111,9 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
     })
       .then((res) => {
         if (!res.ok) {
+          if (res.status === 409) {
+            throw new Error('Client already exists');
+          }
           throw new Error('Failed to add client');
         }
         return res.json();
