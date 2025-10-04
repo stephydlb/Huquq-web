@@ -14,6 +14,23 @@ const PORT = 3001;
 const SALT_ROUNDS = 10;
 
 app.use(express.json());
+import helmet from 'helmet';
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      connectSrc: ["'self'", "http://localhost:3001", "https://content.googleapis.com", "https://accounts.google.com", "https://www.googleapis.com", "https://goldprice.org"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+}));
+
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true

@@ -169,27 +169,38 @@ const Welcome = () => {
                 }
                 setLoading(true);
                 try {
-                  let user;
+                  let response;
+                  let data;
                   if (tab === 0) {
-                    user = StorageService.registerUser(email, name, password);
-                    if (!user) {
-                      setMessage({ type: 'error', text: 'Email déjà utilisé' });
+                    response = await fetch('http://localhost:3001/register', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email, name, password }),
+                    });
+                    data = await response.json();
+                    if (!response.ok) {
+                      setMessage({ type: 'error', text: data.error || 'Erreur lors de la création du compte' });
                       setLoading(false);
                       return;
                     }
                     setMessage({ type: 'success', text: 'Compte créé avec succès!' });
                   } else {
-                    user = StorageService.loginUser(email, password);
-                    if (!user) {
-                      setMessage({ type: 'error', text: 'Email ou mot de passe incorrect' });
+                    response = await fetch('http://localhost:3001/login', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email, password }),
+                    });
+                    data = await response.json();
+                    if (!response.ok) {
+                      setMessage({ type: 'error', text: data.error || 'Email ou mot de passe incorrect' });
                       setLoading(false);
                       return;
                     }
                     setMessage({ type: 'success', text: 'Connexion réussie!' });
                   }
-                  localStorage.setItem('user', JSON.stringify(user));
+                  localStorage.setItem('user', JSON.stringify(data));
                   setTimeout(() => {
-                    navigate('/');
+                    window.location.href = '/';
                   }, 1500);
                 } catch (error) {
                   setMessage({ type: 'error', text: 'Erreur lors de l\'authentification' });

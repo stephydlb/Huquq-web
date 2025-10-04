@@ -25,9 +25,10 @@ import { GoogleDriveService } from '../services/GoogleDriveService';
 interface SettingsProps {
   settings: UserSettings;
   updateSettings: (settings: UserSettings) => void;
+  currentUser?: { id: string; email: string; name: string };
 }
 
-const Settings = ({ settings, updateSettings }: SettingsProps) => {
+const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<UserSettings>(settings);
   const [newCategory, setNewCategory] = useState('');
@@ -84,6 +85,25 @@ const Settings = ({ settings, updateSettings }: SettingsProps) => {
       </Typography>
 
       <Grid container spacing={3}>
+        {/* Account Information */}
+        {currentUser && (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                {t('settings.account', 'Informations du compte')}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography variant="body1">
+                  <strong>{t('settings.name', 'Nom')}:</strong> {currentUser.name}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>{t('settings.email', 'Email')}:</strong> {currentUser.email}
+                </Typography>
+              </Box>
+            </Paper>
+          </Grid>
+        )}
+
         {/* General Settings */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>

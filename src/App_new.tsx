@@ -280,6 +280,7 @@ function App() {
                       <Settings
                         settings={settings}
                         updateSettings={updateSettings}
+                        currentUser={currentUser}
                       />
                     </Container>
                   }
