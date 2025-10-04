@@ -26,7 +26,7 @@ import { StorageService } from '../services/StorageService';
 
 interface SettingsProps {
   settings: UserSettings;
-  updateSettings: (settings: UserSettings) => void;
+  updateSettings: (settings: UserSettings) => Promise<void>;
   currentUser?: { id: string; email: string; name: string };
 }
 
@@ -377,13 +377,13 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
             <Button
               variant="outlined"
               startIcon={<CloudUploadIcon />}
-              onClick={() => {
+              onClick={async () => {
                 try {
                   const userStr = localStorage.getItem('user');
                   const user = userStr ? JSON.parse(userStr) : null;
                   if (!user) throw new Error('No user logged in');
 
-                  const data = StorageService.exportData(user.id);
+                  const data = await StorageService.exportData(user.id);
                   const blob = new Blob([data], { type: 'application/json' });
                   const url = URL.createObjectURL(blob);
 
@@ -431,7 +431,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
                     const user = userStr ? JSON.parse(userStr) : null;
                     if (!user) throw new Error('No user logged in');
 
-                    const success = StorageService.importData(text, user.id);
+                    const success = await StorageService.importData(text, user.id);
                     if (success) {
                       setSnackbar({
                         open: true,

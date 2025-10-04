@@ -60,8 +60,8 @@ function App() {
         const userId = user.id;
 
         // Load user-specific data
-        const loadedAppData = StorageService.loadAppData(userId);
-        const loadedSettings = StorageService.loadUserSettings(userId);
+        const loadedAppData = await StorageService.loadAppData(userId);
+        const loadedSettings = await StorageService.loadUserSettings(userId);
 
         if (loadedAppData) {
           setAppData(loadedAppData);
@@ -89,7 +89,7 @@ function App() {
             }
           };
           setAppData(defaultData);
-          StorageService.saveAppData(defaultData, userId);
+          await StorageService.saveAppData(defaultData, userId);
         }
 
         if (loadedSettings) {
@@ -128,8 +128,8 @@ function App() {
         setCurrentUser(user);
         // Load data for new user
         const userId = user.id;
-        const loadedAppData = StorageService.loadAppData(userId);
-        const loadedSettings = StorageService.loadUserSettings(userId);
+        const loadedAppData = await StorageService.loadAppData(userId);
+        const loadedSettings = await StorageService.loadUserSettings(userId);
 
         if (loadedAppData) {
           setAppData(loadedAppData);
@@ -156,7 +156,7 @@ function App() {
             }
           };
           setAppData(defaultData);
-          StorageService.saveAppData(defaultData, userId);
+          await StorageService.saveAppData(defaultData, userId);
         }
 
         if (loadedSettings) {
@@ -185,22 +185,22 @@ function App() {
     };
   }, []);
 
-  const updateAppData = (newData: AppData) => {
+  const updateAppData = async (newData: AppData) => {
     setAppData(newData);
     if (currentUser) {
-      StorageService.saveAppData(newData, currentUser.id);
+      await StorageService.saveAppData(newData, currentUser.id);
     }
   };
 
-  const updateSettings = (newSettings: UserSettings) => {
+  const updateSettings = async (newSettings: UserSettings) => {
     setSettings(newSettings);
     if (currentUser) {
-      StorageService.saveUserSettings(newSettings, currentUser.id);
+      await StorageService.saveUserSettings(newSettings, currentUser.id);
     }
 
     if (appData) {
       const updatedData = { ...appData, settings: newSettings };
-      updateAppData(updatedData);
+      await updateAppData(updatedData);
     }
   };
 

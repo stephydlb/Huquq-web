@@ -7,6 +7,43 @@ This document provides manual test steps to verify the Supabase integration in t
 - You have access to the Supabase project dashboard to verify data.
 - The app is accessible in the browser (e.g., http://localhost:5173).
 
+## Database Setup
+Before testing, you need to create the required tables in your Supabase project. Go to the SQL Editor in your Supabase dashboard and run the following SQL:
+
+```sql
+-- Create app_data table
+CREATE TABLE app_data (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  data JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create user_settings table
+CREATE TABLE user_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  settings JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE app_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for app_data
+CREATE POLICY "Users can view their own app data" ON app_data FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own app data" ON app_data FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own app data" ON app_data FOR UPDATE USING (auth.uid() = user_id);
+
+-- Create policies for user_settings
+CREATE POLICY "Users can view their own settings" ON user_settings FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own settings" ON user_settings FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own settings" ON user_settings FOR UPDATE USING (auth.uid() = user_id);
+```
+
 ## Test Areas
 
 ### 1. User Authentication

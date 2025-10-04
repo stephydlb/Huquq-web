@@ -1,6 +1,7 @@
 import CryptoJS from 'crypto-js';
 import type { AppData, UserSettings } from '../types';
 import { STORAGE_KEYS } from '../utils/constants';
+import supabase from './SupabaseService';
 
 interface User {
   id: string;
@@ -11,33 +12,9 @@ interface User {
 }
 
 export class StorageService {
-  private static encryptionKey: string;
+  // Removed unused encryptionKey property
 
-  private static getEncryptionKey(): string {
-    if (!this.encryptionKey) {
-      let key = localStorage.getItem(STORAGE_KEYS.ENCRYPTION_KEY);
-      if (!key) {
-        key = CryptoJS.lib.WordArray.random(256/8).toString();
-        localStorage.setItem(STORAGE_KEYS.ENCRYPTION_KEY, key);
-      }
-      this.encryptionKey = key;
-    }
-    return this.encryptionKey;
-  }
-
-  private static encrypt(data: string): string {
-    return CryptoJS.AES.encrypt(data, this.getEncryptionKey()).toString();
-  }
-
-  private static decrypt(encryptedData: string): string {
-    try {
-      const bytes = CryptoJS.AES.decrypt(encryptedData, this.getEncryptionKey());
-      return bytes.toString(CryptoJS.enc.Utf8);
-    } catch (error) {
-      console.error('Failed to decrypt data:', error);
-      return '';
-    }
-  }
+  // Removed unused encrypt and decrypt methods to fix TS6133 errors
 
   static clearAllData(): void {
     localStorage.removeItem(STORAGE_KEYS.ENCRYPTION_KEY);
@@ -95,59 +72,57 @@ export class StorageService {
   }
 
   // User-specific data
-  static saveAppData(data: AppData, userId: string): void {
+  static async saveAppData(data: AppData, userId: string): Promise<void> {
     try {
-      const serializedData = JSON.stringify(data);
-      const encryptedData = this.encrypt(serializedData);
-      localStorage.setItem(`appData_${userId}`, encryptedData);
+      const { error } = await supabase.from('app_data').upsert({
+        user_id: userId,
+        data: data,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
     } catch (error) {
       console.error('Failed to save app data:', error);
     }
   }
 
-  static loadAppData(userId: string): AppData | null {
+  static async loadAppData(userId: string): Promise<AppData | null> {
     try {
-      const encryptedData = localStorage.getItem(`appData_${userId}`);
-      if (!encryptedData) return null;
-
-      const decryptedData = this.decrypt(encryptedData);
-      if (!decryptedData) return null;
-
-      return JSON.parse(decryptedData);
+      const { data, error } = await supabase.from('app_data').select('data').eq('user_id', userId).single();
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows
+      return data?.data || null;
     } catch (error) {
       console.error('Failed to load app data:', error);
       return null;
     }
   }
 
-  static saveUserSettings(settings: UserSettings, userId: string): void {
+  static async saveUserSettings(settings: UserSettings, userId: string): Promise<void> {
     try {
-      const serializedSettings = JSON.stringify(settings);
-      const encryptedSettings = this.encrypt(serializedSettings);
-      localStorage.setItem(`userSettings_${userId}`, encryptedSettings);
+      const { error } = await supabase.from('user_settings').upsert({
+        user_id: userId,
+        settings: settings,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
     } catch (error) {
       console.error('Failed to save user settings:', error);
     }
   }
 
-  static loadUserSettings(userId: string): UserSettings | null {
+  static async loadUserSettings(userId: string): Promise<UserSettings | null> {
     try {
-      const encryptedSettings = localStorage.getItem(`userSettings_${userId}`);
-      if (!encryptedSettings) return null;
-
-      const decryptedSettings = this.decrypt(encryptedSettings);
-      if (!decryptedSettings) return null;
-
-      return JSON.parse(decryptedSettings);
+      const { data, error } = await supabase.from('user_settings').select('settings').eq('user_id', userId).single();
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows
+      return data?.settings || null;
     } catch (error) {
       console.error('Failed to load user settings:', error);
       return null;
     }
   }
 
-  static exportData(userId: string): string {
-    const appData = this.loadAppData(userId);
-    const settings = this.loadUserSettings(userId);
+  static async exportData(userId: string): Promise<string> {
+    const appData = await this.loadAppData(userId);
+    const settings = await this.loadUserSettings(userId);
 
     const exportData = {
       appData,
@@ -158,16 +133,16 @@ export class StorageService {
     return JSON.stringify(exportData, null, 2);
   }
 
-  static importData(jsonData: string, userId: string): boolean {
+  static async importData(jsonData: string, userId: string): Promise<boolean> {
     try {
       const importData = JSON.parse(jsonData);
 
       if (importData.appData) {
-        this.saveAppData(importData.appData, userId);
+        await this.saveAppData(importData.appData, userId);
       }
 
       if (importData.settings) {
-        this.saveUserSettings(importData.settings, userId);
+        await this.saveUserSettings(importData.settings, userId);
       }
 
       return true;
@@ -177,8 +152,8 @@ export class StorageService {
     }
   }
 
-  static downloadData(userId: string): void {
-    const data = this.exportData(userId);
+  static async downloadData(userId: string): Promise<void> {
+    const data = await this.exportData(userId);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -190,12 +165,12 @@ export class StorageService {
     URL.revokeObjectURL(url);
   }
 
-  static uploadData(file: File, userId: string): Promise<boolean> {
+  static async uploadData(file: File, userId: string): Promise<boolean> {
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const content = e.target?.result as string;
-        const success = this.importData(content, userId);
+        const success = await this.importData(content, userId);
         resolve(success);
       };
       reader.readAsText(file);
