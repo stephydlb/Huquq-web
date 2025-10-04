@@ -37,7 +37,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
     message: '',
     severity: 'success'
   });
-  const [representatives, setRepresentatives] = useState([]);
+  const [representatives, setRepresentatives] = useState<any[]>([]);
   const [selectedRep, setSelectedRep] = useState('');
   const [repMessage, setRepMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -81,7 +81,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
     }));
   };
 
-  const handleRepChange = (event) => {
+  const handleRepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedRep(event.target.value);
   };
 
@@ -90,7 +90,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
     fetch('http://localhost:3001/set-representative', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.userId, representativeId: selectedRep }),
+      body: JSON.stringify({ userId: user.id, representativeId: selectedRep }),
     })
       .then(res => res.json())
       .then(data => {
@@ -113,7 +113,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
         .catch(() => setRepMessage({ type: 'error', text: 'Failed to load representatives' }));
 
       // Fetch current rep
-      fetch(`http://localhost:3001/user/${user.userId}`)
+      fetch(`http://localhost:3001/user/${user.id}`)
         .then(res => res.json())
         .then(data => {
           if (data.representative_id) {
