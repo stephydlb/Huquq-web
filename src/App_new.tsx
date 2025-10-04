@@ -17,7 +17,7 @@ const Planning = lazy(() => import('./components/Planning'));
 const Settings = lazy(() => import('./components/Settings'));
 const RepresentativeDashboard = lazy(() => import('./components/RepresentativeDashboard'));
 const Help = lazy(() => import('./components/Help'));
-const Navigation = lazy(() => import('./components/Navigation_new'));
+const Navigation = lazy(() => import('./components/Navigation_new').then(module => ({ default: module.default })));
 const SecurityModal = lazy(() => import('./components/SecurityModal'));
 
 const theme = createTheme({

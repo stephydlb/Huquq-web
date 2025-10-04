@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
@@ -28,6 +28,7 @@ import {
   Help as HelpIcon,
   AccountBalance as CoinsIcon,
   People as PeopleIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 
 interface NavigationProps {
@@ -37,14 +38,22 @@ interface NavigationProps {
 const Navigation = ({ currentUser }: NavigationProps) => {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setDrawerOpen(false);
+    navigate('/');
+  };
 
   const navItems = currentUser?.role === 'representative' ? [
     { path: '/representative-dashboard', icon: PeopleIcon, label: 'Representative Dashboard' },
     { path: '/settings', icon: SettingsIcon, label: t('nav.settings') },
     { path: '/help', icon: HelpIcon, label: t('nav.help') },
+    { path: '/logout', icon: LogoutIcon, label: 'Se déconnecter', action: handleLogout },
   ] : [
     { path: '/', icon: DashboardIcon, label: t('nav.dashboard') },
     { path: '/transactions', icon: ReceiptIcon, label: t('nav.transactions') },
@@ -53,6 +62,7 @@ const Navigation = ({ currentUser }: NavigationProps) => {
     { path: '/planning', icon: CalendarIcon, label: t('nav.planning') },
     { path: '/settings', icon: SettingsIcon, label: t('nav.settings') },
     { path: '/help', icon: HelpIcon, label: t('nav.help') },
+    { path: '/logout', icon: LogoutIcon, label: 'Se déconnecter', action: handleLogout },
   ];
 
   const isActive = (path: string) => {
@@ -79,10 +89,15 @@ const Navigation = ({ currentUser }: NavigationProps) => {
           return (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
-                component={Link}
-                to={item.path}
+                component={item.action ? 'button' : Link}
+                to={item.action ? undefined : item.path}
                 selected={isActive(item.path)}
-                onClick={handleDrawerToggle}
+                onClick={() => {
+                  if (item.action) {
+                    item.action();
+                  }
+                  handleDrawerToggle();
+                }}
                 sx={{
                   '&.Mui-selected': {
                     backgroundColor: theme.palette.primary.main,
@@ -145,8 +160,13 @@ const Navigation = ({ currentUser }: NavigationProps) => {
                 return (
                   <IconButton
                     key={item.path}
-                    component={Link}
-                    to={item.path}
+                    component={item.action ? 'button' : Link}
+                    onClick={() => {
+                      if (item.action) {
+                        item.action();
+                      }
+                      setDrawerOpen(false);
+                    }}
                     sx={{
                       color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.7)',
                       backgroundColor: isActive(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
