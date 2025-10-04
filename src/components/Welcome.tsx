@@ -14,6 +14,10 @@ import {
   useTheme,
   Tabs,
   Tab,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -34,6 +38,7 @@ const Welcome = () => {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('client');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -139,15 +144,28 @@ const Welcome = () => {
               InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }}
             />
             {tab === 0 && (
-              <TextField
-                fullWidth
-                label="Nom"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                sx={{ mb: 2, '& .MuiInputBase-root': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }, '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' } }}
-                InputProps={{ style: { color: 'white' } }}
-                InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }}
-              />
+              <>
+                <TextField
+                  fullWidth
+                  label="Nom"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  sx={{ mb: 2, '& .MuiInputBase-root': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }, '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' } }}
+                  InputProps={{ style: { color: 'white' } }}
+                  InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }}
+                />
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel style={{ color: 'rgba(255,255,255,0.7)' }}>Rôle</InputLabel>
+                  <Select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    style={{ color: 'white', backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  >
+                    <MenuItem value="client">Client</MenuItem>
+                    <MenuItem value="representative">Représentant</MenuItem>
+                  </Select>
+                </FormControl>
+              </>
             )}
             <TextField
               fullWidth
@@ -163,7 +181,7 @@ const Welcome = () => {
               fullWidth
               variant="contained"
               onClick={async () => {
-                if (!email || !password || (tab === 0 && !name)) {
+                if (!email || !password || (tab === 0 && !name) || (tab === 0 && !role)) {
                   setMessage({ type: 'error', text: 'Veuillez remplir tous les champs' });
                   return;
                 }
@@ -175,7 +193,7 @@ const Welcome = () => {
                     response = await fetch('http://localhost:3001/register', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email, name, password }),
+                      body: JSON.stringify({ email, name, password, role }),
                     });
                     data = await response.json();
                     if (!response.ok) {

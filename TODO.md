@@ -1,26 +1,22 @@
-# Application Optimization Task
+# TODO: Add Representative Feature
 
-## Completed Optimizations
+## Backend Changes
+- [x] Update database schema: add 'role' and 'representative_id' columns to users table
+- [x] Create payments table
+- [x] Update /register endpoint to accept role
+- [x] Add /representatives endpoint to get list of representatives
+- [x] Add /set-representative endpoint for clients to choose representative
+- [x] Add /submit-payment endpoint
+- [x] Add /client-payments endpoint for representatives to view clients' payments
+- [x] Add /contact endpoint for sending messages to representatives
 
-### Code Cleanup
-- [x] Removed unused component files: Navigation.tsx, Payments_new.tsx, SecurityModal_new.tsx, Dashboard_fixed.tsx
-- [x] Removed unused Tailwind config files: tailwind.config.js, postcss.config.js, postcss.config.cjs
-- [x] Cleaned up unused imports in Settings.tsx and Welcome.tsx
+## Frontend Changes
+- [x] Update Welcome.tsx registration form to include role selection
+- [x] Update Settings.tsx to allow clients to select representative
+- [ ] Add Contact component for messaging representatives
+- [ ] Update App_new.tsx for new routes if needed
 
-### Performance Optimizations
-- [x] Implemented lazy loading for all route components (Dashboard, Transactions, Calculator, Payments, Planning, Settings, Help, Navigation, SecurityModal, Welcome)
-- [x] Added Suspense boundaries with loading fallbacks
-- [x] Configured Vite build for code splitting with manual chunks (vendor, mui, router, utils)
-- [x] Enabled Terser minification
-
-### Build Fixes
-- [x] Fixed TypeScript errors in GoogleDriveService.ts (added userId parameters)
-- [x] Fixed missing imports in components
-- [x] Verified build process completes successfully
-
-## Benefits
-- Reduced bundle size through code splitting and lazy loading
-- Faster initial load times with on-demand component loading
-- Cleaner codebase with removed unused files
-- Better caching with separate chunks for different libraries
-- Improved development experience with proper TypeScript types
+## Testing
+- [ ] Test backend endpoints
+- [ ] Test frontend UI
+- [ ] Ensure authentication and authorization

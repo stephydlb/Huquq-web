@@ -61,10 +61,27 @@ db.serialize(() => {
     email TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     passwordHash TEXT NOT NULL,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    role TEXT NOT NULL DEFAULT 'client',
+    representative_id TEXT,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (representative_id) REFERENCES users(id)
   )`, (err) => {
     if (err) {
       console.error('Table creation error:', err);
+    }
+  });
+
+  db.run(`CREATE TABLE payments (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    amount REAL NOT NULL,
+    description TEXT,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'pending',
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )`, (err) => {
+    if (err) {
+      console.error('Payments table creation error:', err);
     }
   });
 
@@ -83,10 +100,14 @@ db.serialize(() => {
 
 // POST /register - Register new user
 app.post('/register', async (req, res) => {
-  const { email, name, password } = req.body;
+  const { email, name, password, role } = req.body;
 
-  if (!email || !name || !password) {
-    return res.status(400).json({ error: 'Email, name, and password are required' });
+  if (!email || !name || !password || !role) {
+    return res.status(400).json({ error: 'Email, name, password, and role are required' });
+  }
+
+  if (!['client', 'representative'].includes(role)) {
+    return res.status(400).json({ error: 'Role must be client or representative' });
   }
 
   try {
@@ -105,8 +126,8 @@ app.post('/register', async (req, res) => {
 
       // Insert new user
       db.run(
-        'INSERT INTO users (id, email, name, passwordHash) VALUES (?, ?, ?, ?)',
-        [id, email, name, passwordHash],
+        'INSERT INTO users (id, email, name, passwordHash, role) VALUES (?, ?, ?, ?, ?)',
+        [id, email, name, passwordHash, role],
         function(err) {
           if (err) {
             console.error('INSERT error:', err);
@@ -121,7 +142,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// POST /login - Login user
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -140,13 +160,108 @@ app.post('/login', (req, res) => {
     try {
       const isValid = await bcrypt.compare(password, user.passwordHash);
       if (isValid) {
-        res.json({ message: 'Login successful', userId: user.id, name: user.name });
+        res.json({ message: 'Login successful', userId: user.id, name: user.name, role: user.role });
       } else {
         res.status(401).json({ error: 'Invalid credentials' });
       }
     } catch (error) {
       res.status(500).json({ error: 'Server error' });
     }
+  });
+});
+
+// GET /representatives - Get list of representatives
+app.get('/representatives', (req, res) => {
+  db.all("SELECT id, name, email FROM users WHERE role = 'representative'", (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(rows);
+  });
+});
+
+// POST /set-representative - Set representative for client
+app.post('/set-representative', (req, res) => {
+  const { userId, representativeId } = req.body;
+
+  if (!userId || !representativeId) {
+    return res.status(400).json({ error: 'userId and representativeId are required' });
+  }
+
+  // Check if representative exists and is representative
+  db.get("SELECT id FROM users WHERE id = ? AND role = 'representative'", [representativeId], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (!row) {
+      return res.status(400).json({ error: 'Invalid representative' });
+    }
+
+    // Update user's representative_id
+    db.run("UPDATE users SET representative_id = ? WHERE id = ?", [representativeId, userId], function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json({ message: 'Representative set successfully' });
+    });
+  });
+});
+
+// POST /submit-payment - Submit a payment
+app.post('/submit-payment', (req, res) => {
+  const { userId, amount, description } = req.body;
+
+  if (!userId || !amount) {
+    return res.status(400).json({ error: 'userId and amount are required' });
+  }
+
+  const id = uuidv4();
+
+  db.run("INSERT INTO payments (id, user_id, amount, description) VALUES (?, ?, ?, ?)", [id, userId, amount, description], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.status(201).json({ message: 'Payment submitted successfully', paymentId: id });
+  });
+});
+
+// GET /client-payments/:repId - Get payments for clients of a representative
+app.get('/client-payments/:repId', (req, res) => {
+  const repId = req.params.repId;
+
+  db.all(`SELECT p.*, u.name as client_name, u.email as client_email FROM payments p JOIN users u ON p.user_id = u.id WHERE u.representative_id = ?`, [repId], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(rows);
+  });
+});
+
+// POST /contact - Send message to representative
+app.post('/contact', (req, res) => {
+  const { userId, message } = req.body;
+
+  if (!userId || !message) {
+    return res.status(400).json({ error: 'userId and message are required' });
+  }
+
+  // For simplicity, just log the message (in real app, store in DB)
+  console.log(`Message from user ${userId}: ${message}`);
+  res.json({ message: 'Message sent successfully' });
+});
+
+// GET /user/:id - Get user info
+app.get('/user/:id', (req, res) => {
+  const id = req.params.id;
+
+  db.get("SELECT id, email, name, role, representative_id FROM users WHERE id = ?", [id], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (!row) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(row);
   });
 });
 

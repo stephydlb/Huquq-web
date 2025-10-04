@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -37,6 +37,9 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
     message: '',
     severity: 'success'
   });
+  const [representatives, setRepresentatives] = useState([]);
+  const [selectedRep, setSelectedRep] = useState('');
+  const [repMessage, setRepMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const handleInputChange = (field: keyof UserSettings, value: any) => {
     setFormData(prev => ({
@@ -77,6 +80,49 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
       essentialCategories: prev.essentialCategories.filter(c => c !== category)
     }));
   };
+
+  const handleRepChange = (event) => {
+    setSelectedRep(event.target.value);
+  };
+
+  const handleRepSave = () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    fetch('http://localhost:3001/set-representative', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.userId, representativeId: selectedRep }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setRepMessage({ type: 'error', text: data.error });
+        } else {
+          setRepMessage({ type: 'success', text: 'Representative set successfully' });
+        }
+      })
+      .catch(() => setRepMessage({ type: 'error', text: 'Failed to set representative' }));
+  };
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role === 'client') {
+      // Fetch representatives
+      fetch('http://localhost:3001/representatives')
+        .then(res => res.json())
+        .then(data => setRepresentatives(data))
+        .catch(() => setRepMessage({ type: 'error', text: 'Failed to load representatives' }));
+
+      // Fetch current rep
+      fetch(`http://localhost:3001/user/${user.userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.representative_id) {
+            setSelectedRep(data.representative_id);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -292,6 +338,31 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
             />
           </Paper>
         </Grid>
+
+        {/* Representative Selection */}
+        {JSON.parse(localStorage.getItem('user') || '{}').role === 'client' && (
+          <Grid item xs={12} md={6}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Select Your Representative
+              </Typography>
+              {repMessage && <Alert severity={repMessage.type} sx={{ mb: 2 }}>{repMessage.text}</Alert>}
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Representative</InputLabel>
+                <Select value={selectedRep} onChange={handleRepChange} label="Representative">
+                  {representatives.map((rep) => (
+                    <MenuItem key={rep.id} value={rep.id}>
+                      {rep.name} ({rep.email})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button variant="contained" onClick={handleRepSave} disabled={!selectedRep}>
+                Save
+              </Button>
+            </Paper>
+          </Grid>
+        )}
 
         {/* Backup & Restore */}
         <Grid item xs={12}>
