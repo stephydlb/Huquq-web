@@ -5,6 +5,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Container, CircularProgress, Typography } from '@mui/material';
 import { StorageService } from './services/StorageService';
+import supabase from './services/SupabaseService';
 import type { AppData, UserSettings } from './types';
 
 // Lazy loaded components
@@ -44,67 +45,144 @@ function App() {
   const [hasUser, setHasUser] = useState(false);
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : null;
-
-    if (user) {
-      setHasUser(true);
-      setCurrentUser(user);
-      const userId = user.id;
-
-      // Load user-specific data
-      const loadedAppData = StorageService.loadAppData(userId);
-      const loadedSettings = StorageService.loadUserSettings(userId);
-
-      if (loadedAppData) {
-        setAppData(loadedAppData);
-      } else {
-        // Initialize with default data for this user
-        const defaultData: AppData = {
-          transactions: [],
-          payments: [],
-          paymentPlans: [],
-          settings: {
-            language: 'fr',
-            currency: 'EUR',
-            goldUnit: 'mithqal',
-            mithqalToGram: 4.25,
-            essentialCategories: ['Logement', 'Nourriture', 'Santé', 'Éducation', 'Transport'],
-            notifications: {
-              enabled: true,
-              paymentReminders: true,
-              goldPriceAlerts: false
-            },
-            security: {
-              pinEnabled: false,
-              biometricEnabled: false
-            }
-          }
+    // Check initial session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const user = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name,
+          role: session.user.user_metadata?.role,
         };
-        setAppData(defaultData);
-        StorageService.saveAppData(defaultData, userId);
-      }
+        setHasUser(true);
+        setCurrentUser(user);
+        const userId = user.id;
 
-      if (loadedSettings) {
-        setSettings(loadedSettings);
-      } else if (loadedAppData?.settings) {
-        setSettings(loadedAppData.settings);
-      }
+        // Load user-specific data
+        const loadedAppData = StorageService.loadAppData(userId);
+        const loadedSettings = StorageService.loadUserSettings(userId);
 
-      // Check if PIN is required
-      const finalSettings = loadedSettings || loadedAppData?.settings;
-      if (finalSettings?.security.pinEnabled) {
-        setIsAuthenticated(false);
+        if (loadedAppData) {
+          setAppData(loadedAppData);
+        } else {
+          // Initialize with default data for this user
+          const defaultData: AppData = {
+            transactions: [],
+            payments: [],
+            paymentPlans: [],
+            settings: {
+              language: 'fr',
+              currency: 'EUR',
+              goldUnit: 'mithqal',
+              mithqalToGram: 4.25,
+              essentialCategories: ['Logement', 'Nourriture', 'Santé', 'Éducation', 'Transport'],
+              notifications: {
+                enabled: true,
+                paymentReminders: true,
+                goldPriceAlerts: false
+              },
+              security: {
+                pinEnabled: false,
+                biometricEnabled: false
+              }
+            }
+          };
+          setAppData(defaultData);
+          StorageService.saveAppData(defaultData, userId);
+        }
+
+        if (loadedSettings) {
+          setSettings(loadedSettings);
+        } else if (loadedAppData?.settings) {
+          setSettings(loadedAppData.settings);
+        }
+
+        // Check if PIN is required
+        const finalSettings = loadedSettings || loadedAppData?.settings;
+        if (finalSettings?.security.pinEnabled) {
+          setIsAuthenticated(false);
+        } else {
+          setIsAuthenticated(true);
+        }
       } else {
-        setIsAuthenticated(true);
+        // No user, show Welcome
+        setHasUser(false);
+        setIsAuthenticated(false);
       }
-    } else {
-      // No user, show Welcome
-      setHasUser(false);
-      setIsAuthenticated(false);
-    }
+      setIsLoading(false);
+    };
 
-    setIsLoading(false);
+    checkSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const user = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name,
+          role: session.user.user_metadata?.role,
+        };
+        setHasUser(true);
+        setCurrentUser(user);
+        // Load data for new user
+        const userId = user.id;
+        const loadedAppData = StorageService.loadAppData(userId);
+        const loadedSettings = StorageService.loadUserSettings(userId);
+
+        if (loadedAppData) {
+          setAppData(loadedAppData);
+        } else {
+          const defaultData: AppData = {
+            transactions: [],
+            payments: [],
+            paymentPlans: [],
+            settings: {
+              language: 'fr',
+              currency: 'EUR',
+              goldUnit: 'mithqal',
+              mithqalToGram: 4.25,
+              essentialCategories: ['Logement', 'Nourriture', 'Santé', 'Éducation', 'Transport'],
+              notifications: {
+                enabled: true,
+                paymentReminders: true,
+                goldPriceAlerts: false
+              },
+              security: {
+                pinEnabled: false,
+                biometricEnabled: false
+              }
+            }
+          };
+          setAppData(defaultData);
+          StorageService.saveAppData(defaultData, userId);
+        }
+
+        if (loadedSettings) {
+          setSettings(loadedSettings);
+        } else if (loadedAppData?.settings) {
+          setSettings(loadedAppData.settings);
+        }
+
+        const finalSettings = loadedSettings || loadedAppData?.settings;
+        if (finalSettings?.security.pinEnabled) {
+          setIsAuthenticated(false);
+        } else {
+          setIsAuthenticated(true);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setHasUser(false);
+        setCurrentUser(null);
+        setAppData(null);
+        setSettings(null);
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const updateAppData = (newData: AppData) => {

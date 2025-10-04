@@ -28,6 +28,7 @@ import {
   Settings as SettingsIcon,
   AccountBalance as CoinsIcon,
 } from '@mui/icons-material';
+import supabase from '../services/SupabaseService';
 
 const Welcome = () => {
   const { t } = useTranslation();
@@ -87,19 +88,18 @@ const Welcome = () => {
       <Container maxWidth="lg">
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Box
+            component="img"
+            src="/logo/Logo Huququllah - Étoile 9 pointes Monoline.jpg"
+            alt="Huququllah Logo"
             sx={{
               width: 80,
               height: 80,
-              background: 'rgba(255,255,255,0.2)',
               borderRadius: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              objectFit: 'contain',
               mx: 'auto',
               mb: 3,
             }}
           >
-            <CoinsIcon sx={{ fontSize: 40, color: 'white' }} />
           </Box>
           <Typography variant="h2" component="h1" sx={{ color: 'white', fontWeight: 'bold', mb: 2 }}>
             Ḥuqúqu’lláh Assistant
@@ -185,39 +185,51 @@ const Welcome = () => {
                 }
                 setLoading(true);
                 try {
-                  let response;
-                  let data;
+                  let result;
                   if (tab === 0) {
-                    response = await fetch('http://localhost:3001/register', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email, name, password, role }),
+                    // Sign up
+                    result = await supabase.auth.signUp({
+                      email,
+                      password,
+                      options: {
+                        data: {
+                          name,
+                          role,
+                        },
+                      },
                     });
-                    data = await response.json();
-                    if (!response.ok) {
-                      setMessage({ type: 'error', text: data.error || 'Erreur lors de la création du compte' });
+                    if (result.error) {
+                      setMessage({ type: 'error', text: result.error.message || 'Erreur lors de la création du compte' });
                       setLoading(false);
                       return;
                     }
-                    setMessage({ type: 'success', text: 'Compte créé avec succès!' });
+                    setMessage({ type: 'success', text: 'Compte créé avec succès! Vérifiez votre email pour confirmer.' });
                   } else {
-                    response = await fetch('http://localhost:3001/login', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email, password }),
+                    // Sign in
+                    result = await supabase.auth.signInWithPassword({
+                      email,
+                      password,
                     });
-                    data = await response.json();
-                    if (!response.ok) {
-                      setMessage({ type: 'error', text: data.error || 'Email ou mot de passe incorrect' });
+                    if (result.error) {
+                      setMessage({ type: 'error', text: result.error.message || 'Email ou mot de passe incorrect' });
                       setLoading(false);
                       return;
                     }
                     setMessage({ type: 'success', text: 'Connexion réussie!' });
                   }
-                  localStorage.setItem('user', JSON.stringify(data));
-                  setTimeout(() => {
-                    window.location.href = '/';
-                  }, 1500);
+                  // Store user data
+                  if (result.data.user) {
+                    const userData = {
+                      id: result.data.user.id,
+                      email: result.data.user.email,
+                      name: result.data.user.user_metadata?.name || name,
+                      role: result.data.user.user_metadata?.role || role,
+                    };
+                    localStorage.setItem('user', JSON.stringify(userData));
+                    setTimeout(() => {
+                      window.location.href = '/';
+                    }, 1500);
+                  }
                 } catch (error) {
                   setMessage({ type: 'error', text: 'Erreur lors de l\'authentification' });
                 }
