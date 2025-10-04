@@ -26,7 +26,7 @@ import {
   CreditCard as CreditCardIcon,
   CalendarToday as CalendarIcon,
   Settings as SettingsIcon,
-  AccountBalance as CoinsIcon,
+
 } from '@mui/icons-material';
 import supabase from '../services/SupabaseService';
 
