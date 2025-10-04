@@ -61,8 +61,9 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
   }, [currentUserId]);
 
   const fetchClientDetails = (clientId: string) => {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
     // Fetch payments
-    fetch(`/client-payments/${currentUserId}/${clientId}`)
+    fetch(`${backendUrl}/client-payments/${currentUserId}/${clientId}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error('Failed to fetch client payments');
@@ -94,7 +95,8 @@ const RepresentativeDashboard = ({ currentUserId }: RepresentativeDashboardProps
       return;
     }
 
-    fetch('http://localhost:3001/register', {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    fetch(`${backendUrl}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
