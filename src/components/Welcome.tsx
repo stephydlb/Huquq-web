@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
@@ -28,11 +28,9 @@ import {
   Settings as SettingsIcon,
   AccountBalance as CoinsIcon,
 } from '@mui/icons-material';
-import { StorageService } from '../services/StorageService';
 
 const Welcome = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const theme = useTheme();
   const [tab, setTab] = useState(0); // 0: register, 1: login
   const [email, setEmail] = useState('');

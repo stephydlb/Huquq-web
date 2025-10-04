@@ -18,6 +18,7 @@ import {
   Alert,
   Snackbar
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, CloudUpload as CloudUploadIcon, CloudDownload as CloudDownloadIcon } from '@mui/icons-material';
 import type { UserSettings } from '../types';
 import { GoogleDriveService } from '../services/GoogleDriveService';
@@ -81,7 +82,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
     }));
   };
 
-  const handleRepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRepChange = (event: SelectChangeEvent<string>) => {
     setSelectedRep(event.target.value);
   };
 
