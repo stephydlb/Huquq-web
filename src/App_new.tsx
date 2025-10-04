@@ -15,6 +15,7 @@ const Calculator = lazy(() => import('./components/Calculator'));
 const Payments = lazy(() => import('./components/Payments'));
 const Planning = lazy(() => import('./components/Planning'));
 const Settings = lazy(() => import('./components/Settings'));
+const RepresentativeDashboard = lazy(() => import('./components/RepresentativeDashboard'));
 const Help = lazy(() => import('./components/Help'));
 const Navigation = lazy(() => import('./components/Navigation_new'));
 const SecurityModal = lazy(() => import('./components/SecurityModal'));
@@ -285,6 +286,16 @@ function App() {
                     </Container>
                   }
                 />
+                {currentUser?.role === 'representative' && (
+                  <Route
+                    path="/representative-dashboard"
+                    element={
+                      <Container maxWidth="lg" sx={{ py: 4 }}>
+                        <RepresentativeDashboard currentUserId={currentUser.id} />
+                      </Container>
+                    }
+                  />
+                )}
                 <Route
                   path="/help"
                   element={

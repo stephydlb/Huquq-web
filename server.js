@@ -250,6 +250,22 @@ app.post('/contact', (req, res) => {
   res.json({ message: 'Message sent successfully' });
 });
 
+// GET /my-clients - Get clients for a representative
+app.get('/my-clients', (req, res) => {
+  const repId = req.query.repId;
+
+  if (!repId) {
+    return res.status(400).json({ error: 'repId is required' });
+  }
+
+  db.all("SELECT id, name, email FROM users WHERE representative_id = ?", [repId], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(rows);
+  });
+});
+
 // GET /user/:id - Get user info
 app.get('/user/:id', (req, res) => {
   const id = req.params.id;
