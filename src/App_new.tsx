@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, Suspense, lazy } from 'react';
+import { useState, useEffect, Suspense, lazy, useCallback } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box, Container, CircularProgress, Typography } from '@mui/material';
@@ -185,14 +185,14 @@ function App() {
     };
   }, []);
 
-  const updateAppData = async (newData: AppData) => {
+  const updateAppData = useCallback(async (newData: AppData) => {
     setAppData(newData);
     if (currentUser) {
       await StorageService.saveAppData(newData, currentUser.id);
     }
-  };
+  }, [currentUser]);
 
-  const updateSettings = async (newSettings: UserSettings) => {
+  const updateSettings = useCallback(async (newSettings: UserSettings) => {
     setSettings(newSettings);
     if (currentUser) {
       await StorageService.saveUserSettings(newSettings, currentUser.id);
@@ -202,7 +202,7 @@ function App() {
       const updatedData = { ...appData, settings: newSettings };
       await updateAppData(updatedData);
     }
-  };
+  }, [currentUser, appData, updateAppData]);
 
   return (
     <ThemeProvider theme={theme}>

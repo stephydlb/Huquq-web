@@ -1,0 +1,74 @@
+{
+  "appData": {
+    "transactions": [
+      {
+        "id": "f55859eb-8ee9-41fe-a392-d7675ae04ca2",
+        "type": "income",
+        "amount": 582,
+        "description": "",
+        "category": "Logement",
+        "date": "2025-10-04T00:00:00.000Z",
+        "isEssential": false
+      }
+    ],
+    "payments": [
+      {
+        "id": "14f376ca-e24a-475b-97da-1e4d9e0f05f6",
+        "amount": 580,
+        "currency": "EUR",
+        "method": "cash",
+        "date": "2025-10-04T00:00:00.000Z",
+        "receipt": "blob:http://localhost:5173/222d7eff-5260-4188-aea1-8f7b44b844fd"
+      }
+    ],
+    "paymentPlans": [
+      {
+        "id": "1759584913821",
+        "totalAmount": 800,
+        "currency": "EUR",
+        "frequency": "monthly",
+        "numberOfPayments": 3,
+        "startDate": "2027-11-05T00:00:00.000Z",
+        "payments": [],
+        "completed": false
+      }
+    ],
+    "settings": {
+      "language": "fr",
+      "currency": "EUR",
+      "goldUnit": "mithqal",
+      "mithqalToGram": 4.25,
+      "essentialCategories": [
+        "Logement",
+        "Nourriture",
+        "Santé",
+        "Éducation",
+        "Transport"
+      ],
+      "notifications": {
+        "enabled": true,
+        "paymentReminders": true,
+        "goldPriceAlerts": false
+      },
+      "security": {
+        "pinEnabled": false,
+        "biometricEnabled": false
+      }
+    },
+    "lastCalculation": {
+      "totalIncome": 582,
+      "totalExpenses": 0,
+      "essentialExpenses": 0,
+      "nonEssentialExpenses": 0,
+      "surplus": 582,
+      "huquqAmount": 110.58,
+      "remainingAmount": 110.58,
+      "period": {
+        "start": "2025-09-30T23:00:00.000Z",
+        "end": "2025-10-30T23:00:00.000Z"
+      }
+    }
+  },
+  "settings": null,
+  "exportDate": "2025-10-04T13:35:21.422Z"
+}

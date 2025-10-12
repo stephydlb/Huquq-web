@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -29,7 +29,6 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, PictureAsPdf as PdfIcon } from '@mui/icons-material';
 import type { AppData, UserSettings, Payment } from '../types';
-import { PdfService } from '../services/PdfService';
 
 interface PaymentsProps {
   appData: AppData;
@@ -37,7 +36,7 @@ interface PaymentsProps {
   settings: UserSettings;
 }
 
-const Payments = ({ appData, updateAppData, settings }: PaymentsProps) => {
+const Payments = React.memo(({ appData, updateAppData, settings }: PaymentsProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
@@ -104,6 +103,8 @@ const Payments = ({ appData, updateAppData, settings }: PaymentsProps) => {
     };
 
     try {
+      // Lazy load PdfService
+      const { PdfService } = await import('../services/PdfService');
       // Generate PDF receipt
       const receiptUrl = await PdfService.generatePaymentReceipt(payment);
       payment.receipt = receiptUrl;
@@ -148,6 +149,8 @@ const Payments = ({ appData, updateAppData, settings }: PaymentsProps) => {
 
   const handleDownloadReceipt = async (payment: Payment) => {
     try {
+      // Lazy load PdfService
+      const { PdfService } = await import('../services/PdfService');
       if (payment.receipt) {
         PdfService.downloadFromBlobUrl(payment.receipt, `receipt-${payment.id}.pdf`);
       } else {
@@ -181,13 +184,17 @@ const Payments = ({ appData, updateAppData, settings }: PaymentsProps) => {
     return methods[method] || method;
   };
 
-  const totalPaid = appData.payments
-    .filter(p => p.currency !== 'GOLD')
-    .reduce((sum, p) => sum + p.amount, 0);
+  const { totalPaid, totalGoldPaid } = useMemo(() => {
+    const totalPaid = appData.payments
+      .filter(p => p.currency !== 'GOLD')
+      .reduce((sum, p) => sum + p.amount, 0);
 
-  const totalGoldPaid = appData.payments
-    .filter(p => p.currency === 'GOLD')
-    .reduce((sum, p) => sum + (p.goldAmount || 0), 0);
+    const totalGoldPaid = appData.payments
+      .filter(p => p.currency === 'GOLD')
+      .reduce((sum, p) => sum + (p.goldAmount || 0), 0);
+
+    return { totalPaid, totalGoldPaid };
+  }, [appData.payments]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -360,6 +367,6 @@ const Payments = ({ appData, updateAppData, settings }: PaymentsProps) => {
       </Snackbar>
     </Box>
   );
-};
+});
 
 export default Payments;

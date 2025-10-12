@@ -1,3 +1,4 @@
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -20,34 +21,36 @@ interface DashboardProps {
   settings: UserSettings;
 }
 
-const Dashboard = ({ appData, settings }: DashboardProps) => {
+const Dashboard = React.memo(({ appData, settings }: DashboardProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // Calculate balance due (simplified calculation)
-  const totalIncome = appData.transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+  // Memoized calculations
+  const { balanceDue, nextPayment, recentTransactions } = useMemo(() => {
+    const totalIncome = appData.transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalExpenses = appData.transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = appData.transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0);
 
-  const balanceDue = totalExpenses - totalIncome;
+    const balanceDue = totalExpenses - totalIncome;
 
-  // Next payment (find the earliest upcoming payment from all plans)
-  const allPayments = appData.paymentPlans.flatMap(plan => plan.payments);
-  const nextPayment = allPayments
-    .filter(p => new Date(p.date) > new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+    const allPayments = appData.paymentPlans.flatMap(plan => plan.payments);
+    const nextPayment = allPayments
+      .filter(p => new Date(p.date) > new Date())
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
+
+    const recentTransactions = appData.transactions
+      .slice(-3)
+      .reverse();
+
+    return { balanceDue, nextPayment, recentTransactions };
+  }, [appData.transactions, appData.paymentPlans]);
 
   // Gold price (placeholder - would come from service)
   const goldPrice = 55.12; // Placeholder
-
-  // Recent transactions
-  const recentTransactions = appData.transactions
-    .slice(-3)
-    .reverse();
 
   return (
     <Box sx={{ p: 3 }}>
@@ -130,6 +133,6 @@ const Dashboard = ({ appData, settings }: DashboardProps) => {
       </Card>
     </Box>
   );
-};
+});
 
 export default Dashboard;
