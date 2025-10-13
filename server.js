@@ -60,7 +60,6 @@ db.serialize(() => {
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
-    passwordHash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'client',
     representative_id TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
