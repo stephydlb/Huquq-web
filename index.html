@@ -11,5 +11,40 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      import { supabase } from '../supabaseClient';
+
+      // file : un objet File (ex: issu d'un input type="file")
+      // userId : l'id de l'utilisateur
+
+      export async function uploadReceipt(file, userId) {
+        const filePath = `${userId}/${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+          .from('receipts')
+          .upload(filePath, file);
+
+        if (error) throw error;
+        // URL publique (si bucket public) ou chemin à stocker en base
+        return data.path;
+      }
+
+      // path : chemin du fichier dans le bucket (ex: "userId/123456_receipt.pdf")
+
+      export function getReceiptUrl(path) {
+        // Pour un bucket privé, génère une URL signée valable 1h
+        const { data } = supabase.storage.from('receipts').getPublicUrl(path);
+        return data.publicUrl;
+        // Pour un bucket privé, utilise plutôt :
+        // const { data } = await supabase.storage.from('receipts').createSignedUrl(path, 3600);
+        // return data.signedUrl;
+      }
+    </script>
+    <input type="file" onChange={async (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const path = await uploadReceipt(file, userId);
+        alert('Fichier uploadé à : ' + path);
+      }
+    }} />
   </body>
 </html>
