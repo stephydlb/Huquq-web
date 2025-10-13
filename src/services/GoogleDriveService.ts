@@ -73,7 +73,7 @@ export class GoogleDriveService {
       const user = userStr ? JSON.parse(userStr) : null;
       if (!user) throw new Error('No user logged in');
 
-      const data = StorageService.exportData(user.id);
+      const data = StorageService.exportData();
       const fileName = `huquq-backup-${new Date().toISOString().split('T')[0]}.json`;
 
       const fileMetadata = {
@@ -142,7 +142,7 @@ export class GoogleDriveService {
       if (!user) throw new Error('No user logged in');
 
       const data = fileToRestore.body;
-      const success = StorageService.importData(data, user.id);
+      const success = StorageService.importData(data);
 
       if (!success) {
         throw new Error('Failed to import backup data. The file may be corrupted.');

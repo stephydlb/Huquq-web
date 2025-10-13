@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
 import {
   Box,
   Container,
@@ -9,15 +8,7 @@ import {
   Grid,
   Card,
   CardContent,
-  TextField,
-  Alert,
   useTheme,
-  Tabs,
-  Tab,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -26,20 +17,11 @@ import {
   CreditCard as CreditCardIcon,
   CalendarToday as CalendarIcon,
   Settings as SettingsIcon,
-
 } from '@mui/icons-material';
-import supabase from '../services/SupabaseService';
 
 const Welcome = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [tab, setTab] = useState(0); // 0: register, 1: login
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('client');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const features = [
     {
@@ -110,142 +92,6 @@ const Welcome = () => {
           <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.8)', mb: 4, maxWidth: 600, mx: 'auto' }}>
             {t('welcome.description')}
           </Typography>
-
-          {/* Auth Form */}
-          <Box sx={{ maxWidth: 400, mx: 'auto', mb: 4 }}>
-            <Tabs
-              value={tab}
-              onChange={(_, newValue) => {
-                setTab(newValue);
-                setMessage(null);
-                setName('');
-              }}
-              sx={{
-                mb: 2,
-                '& .MuiTab-root': { color: 'rgba(255,255,255,0.7)' },
-                '& .Mui-selected': { color: 'white' },
-                '& .MuiTabs-indicator': { backgroundColor: 'white' },
-              }}
-              centered
-            >
-              <Tab label="S'inscrire" />
-              <Tab label="Se connecter" />
-            </Tabs>
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              sx={{ mb: 2, '& .MuiInputBase-root': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }, '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' } }}
-              InputProps={{ style: { color: 'white' } }}
-              InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }}
-            />
-            {tab === 0 && (
-              <>
-                <TextField
-                  fullWidth
-                  label="Nom"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  sx={{ mb: 2, '& .MuiInputBase-root': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }, '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' } }}
-                  InputProps={{ style: { color: 'white' } }}
-                  InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }}
-                />
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel style={{ color: 'rgba(255,255,255,0.7)' }}>Rôle</InputLabel>
-                  <Select
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                    style={{ color: 'white', backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  >
-                    <MenuItem value="client">Client</MenuItem>
-                    <MenuItem value="representative">Représentant</MenuItem>
-                  </Select>
-                </FormControl>
-              </>
-            )}
-            <TextField
-              fullWidth
-              label="Mot de passe"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              sx={{ mb: 2, '& .MuiInputBase-root': { backgroundColor: 'rgba(255,255,255,0.1)', color: 'white' }, '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.7)' } }}
-              InputProps={{ style: { color: 'white' } }}
-              InputLabelProps={{ style: { color: 'rgba(255,255,255,0.7)' } }}
-            />
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={async () => {
-                if (!email || !password || (tab === 0 && !name) || (tab === 0 && !role)) {
-                  setMessage({ type: 'error', text: 'Veuillez remplir tous les champs' });
-                  return;
-                }
-                setLoading(true);
-                try {
-                  let result;
-                  if (tab === 0) {
-                    // Sign up
-                    result = await supabase.auth.signUp({
-                      email,
-                      password,
-                      options: {
-                        data: {
-                          name,
-                          role,
-                        },
-                      },
-                    });
-                    if (result.error) {
-                      setMessage({ type: 'error', text: result.error.message || 'Erreur lors de la création du compte' });
-                      setLoading(false);
-                      return;
-                    }
-                    setMessage({ type: 'success', text: 'Compte créé avec succès! Vérifiez votre email pour confirmer.' });
-                  } else {
-                    // Sign in
-                    result = await supabase.auth.signInWithPassword({
-                      email,
-                      password,
-                    });
-                    if (result.error) {
-                      setMessage({ type: 'error', text: result.error.message || 'Email ou mot de passe incorrect' });
-                      setLoading(false);
-                      return;
-                    }
-                    setMessage({ type: 'success', text: 'Connexion réussie!' });
-                  }
-                  // Store user data
-                  if (result.data.user) {
-                    const userData = {
-                      id: result.data.user.id,
-                      email: result.data.user.email,
-                      name: result.data.user.user_metadata?.name || name,
-                      role: result.data.user.user_metadata?.role || role,
-                    };
-                    localStorage.setItem('user', JSON.stringify(userData));
-                    setTimeout(() => {
-                      window.location.href = '/';
-                    }, 1500);
-                  }
-                } catch (error) {
-                  setMessage({ type: 'error', text: 'Erreur lors de l\'authentification' });
-                }
-                setLoading(false);
-              }}
-              disabled={loading || !email || !password || (tab === 0 && !name)}
-              sx={{ mb: 2 }}
-            >
-              {loading ? (tab === 0 ? 'Création...' : 'Connexion...') : (tab === 0 ? 'Créer le compte' : 'Se connecter')}
-            </Button>
-            {message && (
-              <Alert severity={message.type} sx={{ mt: 2 }}>
-                {message.text}
-              </Alert>
-            )}
-          </Box>
 
           <Button
             component={Link}

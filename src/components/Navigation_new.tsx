@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
@@ -26,34 +26,19 @@ import {
   CalendarToday as CalendarIcon,
   Settings as SettingsIcon,
   Help as HelpIcon,
-  People as PeopleIcon,
-  Logout as LogoutIcon,
 } from '@mui/icons-material';
 
-interface NavigationProps {
-  currentUser?: { id: string; email: string; name: string; role: string };
-}
-
-const Navigation = ({ currentUser }: NavigationProps) => {
+const Navigation = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setDrawerOpen(false);
-    navigate('/');
-  };
 
-  const navItems = currentUser?.role === 'representative' ? [
-    { path: '/representative-dashboard', icon: PeopleIcon, label: 'Representative Dashboard' },
-    { path: '/settings', icon: SettingsIcon, label: t('nav.settings') },
-    { path: '/help', icon: HelpIcon, label: t('nav.help') },
-    { path: '/logout', icon: LogoutIcon, label: 'Se déconnecter', action: handleLogout },
-  ] : [
+
+  const navItems = [
     { path: '/', icon: DashboardIcon, label: t('nav.dashboard') },
     { path: '/transactions', icon: ReceiptIcon, label: t('nav.transactions') },
     { path: '/calculator', icon: CalculateIcon, label: t('nav.calculator') },
@@ -61,7 +46,6 @@ const Navigation = ({ currentUser }: NavigationProps) => {
     { path: '/planning', icon: CalendarIcon, label: t('nav.planning') },
     { path: '/settings', icon: SettingsIcon, label: t('nav.settings') },
     { path: '/help', icon: HelpIcon, label: t('nav.help') },
-    { path: '/logout', icon: LogoutIcon, label: 'Se déconnecter', action: handleLogout },
   ];
 
   const isActive = (path: string) => {
@@ -88,13 +72,10 @@ const Navigation = ({ currentUser }: NavigationProps) => {
           return (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
-                component={item.action ? 'button' : Link}
-                to={item.action ? undefined : item.path}
+                component={Link}
+                to={item.path}
                 selected={isActive(item.path)}
                 onClick={() => {
-                  if (item.action) {
-                    item.action();
-                  }
                   handleDrawerToggle();
                 }}
                 sx={{
@@ -155,14 +136,9 @@ const Navigation = ({ currentUser }: NavigationProps) => {
             <Box sx={{ display: 'flex', gap: 1 }}>
               {navItems.map((item) => {
                 const Icon = item.icon;
-                if (item.action) {
-                  return (
+                return (
+                  <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }}>
                     <IconButton
-                      key={item.path}
-                      onClick={() => {
-                        item.action();
-                        setDrawerOpen(false);
-                      }}
                       sx={{
                         color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.7)',
                         backgroundColor: isActive(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
@@ -177,28 +153,8 @@ const Navigation = ({ currentUser }: NavigationProps) => {
                       <Icon sx={{ mr: 1 }} />
                       <Typography variant="body2">{item.label}</Typography>
                     </IconButton>
-                  );
-                } else {
-                  return (
-                    <Link key={item.path} to={item.path} style={{ textDecoration: 'none' }}>
-                      <IconButton
-                        sx={{
-                          color: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.7)',
-                          backgroundColor: isActive(item.path) ? 'rgba(255,255,255,0.2)' : 'transparent',
-                          '&:hover': {
-                            backgroundColor: 'rgba(255,255,255,0.1)',
-                          },
-                          px: 2,
-                          py: 1,
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Icon sx={{ mr: 1 }} />
-                        <Typography variant="body2">{item.label}</Typography>
-                      </IconButton>
-                    </Link>
-                  );
-                }
+                  </Link>
+                );
               })}
             </Box>
           )}

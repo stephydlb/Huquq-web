@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -18,7 +18,7 @@ import {
   Alert,
   Snackbar
 } from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material';
+
 import { Add as AddIcon, Delete as DeleteIcon, CloudUpload as CloudUploadIcon, CloudDownload as CloudDownloadIcon } from '@mui/icons-material';
 import type { UserSettings } from '../types';
 import { StorageService } from '../services/StorageService';
@@ -26,11 +26,10 @@ import { StorageService } from '../services/StorageService';
 
 interface SettingsProps {
   settings: UserSettings;
-  updateSettings: (settings: UserSettings) => Promise<void>;
-  currentUser?: { id: string; email: string; name: string };
+  updateSettings: (settings: UserSettings) => void;
 }
 
-const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
+const Settings = ({ settings, updateSettings }: SettingsProps) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<UserSettings>(settings);
   const [newCategory, setNewCategory] = useState('');
@@ -39,9 +38,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
     message: '',
     severity: 'success'
   });
-  const [representatives, setRepresentatives] = useState<any[]>([]);
-  const [selectedRep, setSelectedRep] = useState('');
-  const [repMessage, setRepMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
 
   const handleInputChange = (field: keyof UserSettings, value: any) => {
     setFormData(prev => ({
@@ -83,48 +80,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
     }));
   };
 
-  const handleRepChange = (event: SelectChangeEvent<string>) => {
-    setSelectedRep(event.target.value);
-  };
 
-  const handleRepSave = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    fetch('http://localhost:3001/set-representative', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, representativeId: selectedRep }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          setRepMessage({ type: 'error', text: data.error });
-        } else {
-          setRepMessage({ type: 'success', text: 'Representative set successfully' });
-        }
-      })
-      .catch(() => setRepMessage({ type: 'error', text: 'Failed to set representative' }));
-  };
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.role === 'client') {
-      // Fetch representatives
-      fetch('http://localhost:3001/representatives')
-        .then(res => res.json())
-        .then(data => setRepresentatives(data))
-        .catch(() => setRepMessage({ type: 'error', text: 'Failed to load representatives' }));
-
-      // Fetch current rep
-      fetch(`http://localhost:3001/user/${user.id}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.representative_id) {
-            setSelectedRep(data.representative_id);
-          }
-        })
-        .catch(() => {});
-    }
-  }, []);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -133,24 +89,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
       </Typography>
 
       <Grid container spacing={3}>
-        {/* Account Information */}
-        {currentUser && (
-          <Grid item xs={12}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                {t('settings.account', 'Informations du compte')}
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="body1">
-                  <strong>{t('settings.name', 'Nom')}:</strong> {currentUser.name}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>{t('settings.email', 'Email')}:</strong> {currentUser.email}
-                </Typography>
-              </Box>
-            </Paper>
-          </Grid>
-        )}
+
 
         {/* General Settings */}
         <Grid item xs={12} md={6}>
@@ -341,30 +280,7 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
           </Paper>
         </Grid>
 
-        {/* Representative Selection */}
-        {JSON.parse(localStorage.getItem('user') || '{}').role === 'client' && (
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Select Your Representative
-              </Typography>
-              {repMessage && <Alert severity={repMessage.type} sx={{ mb: 2 }}>{repMessage.text}</Alert>}
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Representative</InputLabel>
-                <Select value={selectedRep} onChange={handleRepChange} label="Representative">
-                  {representatives.map((rep) => (
-                    <MenuItem key={rep.id} value={rep.id}>
-                      {rep.name} ({rep.email})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Button variant="contained" onClick={handleRepSave} disabled={!selectedRep}>
-                Save
-              </Button>
-            </Paper>
-          </Grid>
-        )}
+
 
         {/* Backup & Restore */}
         <Grid item xs={12}>
@@ -377,13 +293,9 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
             <Button
               variant="outlined"
               startIcon={<CloudUploadIcon />}
-              onClick={async () => {
+              onClick={() => {
                 try {
-                  const userStr = localStorage.getItem('user');
-                  const user = userStr ? JSON.parse(userStr) : null;
-                  if (!user) throw new Error('No user logged in');
-
-                  const data = await StorageService.exportData(user.id);
+                  const data = StorageService.exportData();
                   const blob = new Blob([data], { type: 'application/json' });
                   const url = URL.createObjectURL(blob);
 
@@ -421,32 +333,32 @@ const Settings = ({ settings, updateSettings, currentUser }: SettingsProps) => {
                 type="file"
                 accept="application/json"
                 hidden
-                onChange={async (e) => {
+                onChange={(e) => {
                   try {
                     const file = e.target.files?.[0];
                     if (!file) return;
 
-                    const text = await file.text();
-                    const userStr = localStorage.getItem('user');
-                    const user = userStr ? JSON.parse(userStr) : null;
-                    if (!user) throw new Error('No user logged in');
-
-                    const success = await StorageService.importData(text, user.id);
-                    if (success) {
-                      setSnackbar({
-                        open: true,
-                        message: t('settings.restoreSuccess', 'Données restaurées avec succès'),
-                        severity: 'success'
-                      });
-                      // Reload app data after restore
-                      window.location.reload();
-                    } else {
-                      setSnackbar({
-                        open: true,
-                        message: t('settings.restoreError', 'Erreur lors de la restauration'),
-                        severity: 'error'
-                      });
-                    }
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const text = event.target?.result as string;
+                      const success = StorageService.importData(text);
+                      if (success) {
+                        setSnackbar({
+                          open: true,
+                          message: t('settings.restoreSuccess', 'Données restaurées avec succès'),
+                          severity: 'success'
+                        });
+                        // Reload app data after restore
+                        window.location.reload();
+                      } else {
+                        setSnackbar({
+                          open: true,
+                          message: t('settings.restoreError', 'Erreur lors de la restauration'),
+                          severity: 'error'
+                        });
+                      }
+                    };
+                    reader.readAsText(file);
                   } catch (error) {
                     setSnackbar({
                       open: true,
