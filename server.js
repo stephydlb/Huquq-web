@@ -71,17 +71,51 @@ db.serialize(() => {
     }
   });
 
-  db.run(`CREATE TABLE payments (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    amount REAL NOT NULL,
-    description TEXT,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    status TEXT DEFAULT 'pending',
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  )`, (err) => {
+  // Drop existing payments table to ensure correct schema
+  db.run("DROP TABLE IF EXISTS payments", (err) => {
+    if (err) {
+      console.error('Drop payments table error:', err);
+    }
+  });
+
+  db.run(`
+    CREATE TABLE payments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      amount REAL NOT NULL,
+      currency TEXT NOT NULL,
+      goldAmount REAL,
+      method TEXT NOT NULL,
+      date DATETIME NOT NULL,
+      note TEXT,
+      receipt TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `, (err) => {
     if (err) {
       console.error('Payments table creation error:', err);
+    }
+  });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS app_data (
+      user_id TEXT PRIMARY KEY,
+      data TEXT
+    )
+  `, (err) => {
+    if (err) {
+      console.error('App data table creation error:', err);
+    }
+  });
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_settings (
+      user_id TEXT PRIMARY KEY,
+      settings TEXT
+    )
+  `, (err) => {
+    if (err) {
+      console.error('User settings table creation error:', err);
     }
   });
 
@@ -209,20 +243,25 @@ app.post('/set-representative', (req, res) => {
 
 // POST /submit-payment - Submit a payment
 app.post('/submit-payment', (req, res) => {
-  const { userId, amount, description } = req.body;
+  const { userId, amount, currency, goldAmount, method, date, note, receipt } = req.body;
 
-  if (!userId || !amount) {
-    return res.status(400).json({ error: 'userId and amount are required' });
+  if (!userId || !amount || !currency || !method || !date) {
+    return res.status(400).json({ error: 'userId, amount, currency, method et date sont requis' });
   }
 
   const id = uuidv4();
 
-  db.run("INSERT INTO payments (id, user_id, amount, description) VALUES (?, ?, ?, ?)", [id, userId, amount, description], function(err) {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' });
+  db.run(
+    `INSERT INTO payments (id, user_id, amount, currency, goldAmount, method, date, note, receipt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, userId, amount, currency, goldAmount || null, method, date, note || null, receipt || null],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(201).json({ message: 'Payment submitted successfully', paymentId: id });
     }
-    res.status(201).json({ message: 'Payment submitted successfully', paymentId: id });
-  });
+  );
 });
 
 // GET /client-payments/:repId - Get payments for clients of a representative
@@ -344,6 +383,30 @@ app.get('/user/:id', (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     res.json(row);
+  });
+});
+
+// GET /app-data/:userId - Récupère les données de l'utilisateur
+app.get('/app-data/:userId', (req, res) => {
+  const userId = req.params.userId;
+  db.get('SELECT data FROM app_data WHERE user_id = ?', [userId], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    // Si aucune donnée, retourne un objet vide
+    res.json({ data: row ? JSON.parse(row.data) : {} });
+  });
+});
+
+// GET /user-settings/:userId - Récupère les paramètres utilisateur
+app.get('/user-settings/:userId', (req, res) => {
+  const userId = req.params.userId;
+  db.get('SELECT settings FROM user_settings WHERE user_id = ?', [userId], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    // Si aucune donnée, retourne un objet vide
+    res.json({ settings: row ? JSON.parse(row.settings) : {} });
   });
 });
 

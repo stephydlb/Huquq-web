@@ -88,7 +88,18 @@ export class StorageService {
   static async loadAppData(userId: string): Promise<AppData | null> {
     try {
       const { data, error } = await supabase.from('app_data').select('data').eq('user_id', userId).single();
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows
+      if (error) {
+        // Ignore les erreurs "no rows" ou "not found"
+        if (
+          error.code === 'PGRST116' ||
+          (typeof error.message === 'string' && error.message.toLowerCase().includes('no rows')) ||
+          (typeof error.details === 'string' && error.details.toLowerCase().includes('0 rows'))
+        ) {
+          return null;
+        }
+        console.error('Failed to load app data:', error);
+        return null;
+      }
       return data?.data || null;
     } catch (error) {
       console.error('Failed to load app data:', error);
@@ -112,7 +123,18 @@ export class StorageService {
   static async loadUserSettings(userId: string): Promise<UserSettings | null> {
     try {
       const { data, error } = await supabase.from('user_settings').select('settings').eq('user_id', userId).single();
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows
+      if (error) {
+        // Ignore les erreurs "no rows" ou "not found"
+        if (
+          error.code === 'PGRST116' ||
+          (typeof error.message === 'string' && error.message.toLowerCase().includes('no rows')) ||
+          (typeof error.details === 'string' && error.details.toLowerCase().includes('0 rows'))
+        ) {
+          return null;
+        }
+        console.error('Failed to load user settings:', error);
+        return null;
+      }
       return data?.settings || null;
     } catch (error) {
       console.error('Failed to load user settings:', error);

@@ -92,6 +92,27 @@ const Payments = React.memo(({ appData, updateAppData, settings }: PaymentsProps
   };
 
   const handleSave = async () => {
+    // Validation des champs
+    if (
+      (formData.currency !== 'GOLD' && (!formData.amount || parseFloat(formData.amount) <= 0)) ||
+      (formData.currency === 'GOLD' && (!formData.goldAmount || parseFloat(formData.goldAmount) <= 0))
+    ) {
+      setSnackbar({
+        open: true,
+        message: t('payments.invalidAmount', 'Montant invalide'),
+        severity: 'error'
+      });
+      return;
+    }
+    if (!formData.date || isNaN(new Date(formData.date).getTime())) {
+      setSnackbar({
+        open: true,
+        message: t('payments.invalidDate', 'Date invalide'),
+        severity: 'error'
+      });
+      return;
+    }
+
     const payment: Payment = {
       id: editingPayment?.id || crypto.randomUUID(),
       amount: parseFloat(formData.amount),
@@ -248,7 +269,7 @@ const Payments = React.memo(({ appData, updateAppData, settings }: PaymentsProps
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
               .map((payment) => (
               <TableRow key={payment.id}>
-                <TableCell>{payment.date.toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(payment.date).toLocaleDateString(settings.language || 'fr-FR')}</TableCell>
                 <TableCell>
                   {payment.currency === 'GOLD'
                     ? `${payment.goldAmount?.toFixed(3)} ${t('unit.mithqal', 'mithqāl')}`

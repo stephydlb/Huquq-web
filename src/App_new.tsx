@@ -257,8 +257,9 @@ function App() {
             }}
           >
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body1" color="error">
-                {t('common.error')}
+              <CircularProgress sx={{ mb: 2 }} />
+              <Typography variant="body1" color="text.secondary">
+                {t('common.loading')}
               </Typography>
             </Box>
           </Box>
